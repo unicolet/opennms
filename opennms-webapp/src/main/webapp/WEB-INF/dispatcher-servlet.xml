@@ -417,11 +417,10 @@
                                 <property name="url" value="outage/index.jsp"/>
                                 <property name="locationMatch" value="outage"/>
                             </bean>
-                            <bean class="org.opennms.web.navigate.SurveillanceViewNavBarEntry">
+                            <bean class="org.opennms.web.navigate.LocationBasedNavBarEntry">
                                 <property name="name" value="Surveillance"/>
-                                <property name="url" value=""/>
-                                <property name="locationMatch" value="surveillance"/>
-                                <property name="surveillanceViewConfigDao" ref="surveillanceViewConfigDao"/>
+                                <property name="url" value="surveillance-view.jsp"/>
+                                <property name="locationMatch" value="surveillance-view"/>
                             </bean>
                             <bean class="org.opennms.web.navigate.DistributedStatusNavBarEntry">
                                 <property name="name" value="Distributed Status"/>

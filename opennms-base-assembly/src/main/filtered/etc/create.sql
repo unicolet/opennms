@@ -83,6 +83,8 @@ drop table filterfavorites cascade;
 drop table hwentity cascade;
 drop table hwentityattribute cascade;
 drop table hwentityattributetype cascade;
+drop table minions_properties cascade;
+drop table minions cascade;
 
 drop sequence catNxtId;
 drop sequence nodeNxtId;
@@ -2272,6 +2274,49 @@ CREATE INDEX catid_idx3 on category_group(categoryId);
 CREATE INDEX catgroup_idx on category_group(groupId);
 CREATE UNIQUE INDEX catgroup_unique_idx on category_group(categoryId, groupId);
 
+--########################################################################
+--#
+--# minions - table for tracking remote minions
+--#
+--# id           : The ID of the minion
+--# location     : The monitoring location associated with the minion
+--# status       : The status of the minion
+--# last_updated : The last time the minion reported in
+--#
+--########################################################################
+
+create table minions (
+    id           varchar(36) not null,
+    location     text not null,
+    status       text,
+    last_updated timestamp with time zone default now(),
+
+    constraint pk_minions primary key (id)
+);
+
+--########################################################################
+--#
+--# minions_properties - arbitrary properties associated with a minion
+--#
+--# id        : The unique ID of the property entry
+--# minion_id : The ID of the minion
+--# key       : The property key
+--# value     : The property value
+--#
+--########################################################################
+
+create table minions_properties (
+    id        integer default nextval('opennmsnxtid') not null,
+    minion_id varchar(36) not null,
+    key       text not null,
+    value     text,
+
+    constraint pk_minions_properties_id primary key (id),
+    constraint fk_minions_properties foreign key (minion_id) references minions (id) ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX minions_properties_unique_idx ON minions_properties(minion_id, key);
+
 --# Begin enlinkd table
 drop table lldpElement cascade;
 drop table lldpLink cascade;
@@ -2334,9 +2379,10 @@ create table cdpLink (
       id integer default nextval('opennmsnxtid') not null,
       nodeid          integer not null,
       cdpCacheIfIndex integer not null,
-      cdpInterfaceName text not null,
+      cdpCacheDeviceIndex integer not null,
+      cdpInterfaceName text,
       cdpCacheAddressType integer not null,
-      cdpCacheAddress varchar(64) not null,
+      cdpCacheAddress text not null,
       cdpCacheVersion text not null,
       cdpCacheDeviceId text not null,
       cdpCacheDevicePort text not null,

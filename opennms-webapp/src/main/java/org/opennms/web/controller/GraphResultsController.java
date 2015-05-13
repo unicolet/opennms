@@ -35,10 +35,10 @@ import org.jrobin.core.timespec.TimeParser;
 import org.jrobin.core.timespec.TimeSpec;
 import org.opennms.core.utils.WebSecurityUtils;
 import org.opennms.netmgt.model.PrefabGraph;
-import org.opennms.web.graph.GraphResults;
-import org.opennms.web.graph.RelativeTimePeriod;
 import org.opennms.web.servlet.MissingParameterException;
-import org.opennms.web.svclayer.GraphResultsService;
+import org.opennms.web.svclayer.api.GraphResultsService;
+import org.opennms.web.svclayer.model.GraphResults;
+import org.opennms.web.svclayer.model.RelativeTimePeriod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -62,7 +62,7 @@ import java.util.List;
  * @since 1.8.1
  */
 public class GraphResultsController extends AbstractController implements InitializingBean {
-    private static Logger logger = LoggerFactory.getLogger("OpenNMS.WEB." + GraphResultsController.class);
+    private static Logger logger = LoggerFactory.getLogger(GraphResultsController.class);
     
     private GraphResultsService m_graphResultsService;
     
@@ -282,7 +282,7 @@ public class GraphResultsController extends AbstractController implements Initia
     /**
      * <p>getGraphResultsService</p>
      *
-     * @return a {@link org.opennms.web.svclayer.GraphResultsService} object.
+     * @return a {@link org.opennms.web.svclayer.api.GraphResultsService} object.
      */
     public GraphResultsService getGraphResultsService() {
         return m_graphResultsService;
@@ -291,7 +291,7 @@ public class GraphResultsController extends AbstractController implements Initia
     /**
      * <p>setGraphResultsService</p>
      *
-     * @param graphResultsService a {@link org.opennms.web.svclayer.GraphResultsService} object.
+     * @param graphResultsService a {@link org.opennms.web.svclayer.api.GraphResultsService} object.
      */
     public void setGraphResultsService(GraphResultsService graphResultsService) {
         m_graphResultsService = graphResultsService;
