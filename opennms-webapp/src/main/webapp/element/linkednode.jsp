@@ -291,11 +291,11 @@
    if (factory.getDataLinksOnNode(nodeId).isEmpty()) {
 %>
   <div class="panel-heading">
-		<h3 class="panel-title">No Links found on <%=node_db.getLabel()%> by Linkd</h3>
+		<h3 class="panel-title">No manual provisioned Links found on <%=node_db.getLabel()%></h3>
 	</div>
 <% } else { %>
   <div class="panel-heading">
-    <h3 class="panel-title"><%=node_db.getLabel()%> Links found by Linkd</h3>
+    <h3 class="panel-title"><%=node_db.getLabel()%> manual provisioned Links</h3>
 	</div>
 		<!-- Link box -->
 		<table class="table table-condensed">
