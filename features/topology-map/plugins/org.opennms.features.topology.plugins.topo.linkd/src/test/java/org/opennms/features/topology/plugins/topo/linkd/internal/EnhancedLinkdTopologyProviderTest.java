@@ -64,10 +64,8 @@ import org.opennms.features.topology.api.topo.VertexProvider;
 import org.opennms.features.topology.api.topo.VertexRef;
 import org.opennms.features.topology.api.topo.WrappedLeafVertex;
 import org.opennms.features.topology.api.topo.WrappedVertex;
-import org.opennms.netmgt.dao.api.DataLinkInterfaceDao;
 import org.opennms.netmgt.dao.api.LldpLinkDao;
 import org.opennms.netmgt.dao.api.OspfLinkDao;
-import org.opennms.netmgt.model.DataLinkInterface;
 import org.opennms.netmgt.model.FilterManager;
 import org.opennms.netmgt.model.LldpLink;
 import org.opennms.netmgt.model.OnmsNode;
@@ -276,7 +274,7 @@ public class EnhancedLinkdTopologyProviderTest {
     public void loadSavedGraphWithOnlyGroups() throws Exception {
         m_topologyProvider.setConfigurationFile("target/test-classes/saved-linkd-graph.xml");
 
-        // Temporarily replace the DataLinkInterfaceDao with a mock empty impl
+        // Temporarily replace the Dao with a mock empty impl
         LldpLinkDao dao = m_topologyProvider.getLldpLinkDao();
         LldpLinkDao mockDao = EasyMock.createMock(LldpLinkDao.class);
         EasyMock.expect(mockDao.findAll()).andReturn(new ArrayList<LldpLink>()).anyTimes();
@@ -332,7 +330,7 @@ public class EnhancedLinkdTopologyProviderTest {
         assertEquals(null, vert8.getParent());
         assertEquals(0, m_topologyProvider.getSemanticZoomLevel(vert8));
 
-        // Reset the DataLinkInterfaceDao
+        // Reset the Dao
         m_topologyProvider.setLldpLinkDao(dao);
     }
 

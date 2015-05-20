@@ -39,7 +39,6 @@ import org.opennms.netmgt.dao.api.AcknowledgmentDao;
 import org.opennms.netmgt.dao.api.AlarmDao;
 import org.opennms.netmgt.dao.api.AssetRecordDao;
 import org.opennms.netmgt.dao.api.CategoryDao;
-import org.opennms.netmgt.dao.api.DataLinkInterfaceDao;
 import org.opennms.netmgt.dao.api.DistPollerDao;
 import org.opennms.netmgt.dao.api.EventDao;
 import org.opennms.netmgt.dao.api.IpInterfaceDao;
@@ -56,7 +55,6 @@ import org.opennms.netmgt.dao.api.SnmpInterfaceDao;
 import org.opennms.netmgt.dao.api.UserNotificationDao;
 import org.opennms.netmgt.model.AckAction;
 import org.opennms.netmgt.model.AckType;
-import org.opennms.netmgt.model.DataLinkInterface;
 import org.opennms.netmgt.model.NetworkBuilder;
 import org.opennms.netmgt.model.OnmsAcknowledgment;
 import org.opennms.netmgt.model.OnmsAlarm;
@@ -154,7 +152,6 @@ public class DatabasePopulator {
     private LocationMonitorDao m_locationMonitorDao;
     private OnmsMapDao m_onmsMapDao;
     private OnmsMapElementDao m_onmsMapElementDao;
-    private DataLinkInterfaceDao m_dataLinkInterfaceDao;
     private AcknowledgmentDao m_acknowledgmentDao;
     private TransactionOperations m_transOperation;
     
@@ -219,9 +216,6 @@ public class DatabasePopulator {
 
     public void resetDatabase() {
         LOG.debug("==== DatabasePopulator Reset ====");
-        for (final DataLinkInterface iface : m_dataLinkInterfaceDao.findAll()) {
-            m_dataLinkInterfaceDao.delete(iface);
-        }
         for (final OnmsOutage outage : m_outageDao.findAll()) {
             m_outageDao.delete(outage);
         }
@@ -262,7 +256,6 @@ public class DatabasePopulator {
     	}
     	LOG.debug("= DatabasePopulatorExtension Reset Finished =");
         
-        m_dataLinkInterfaceDao.flush();
         m_outageDao.flush();
         m_userNotificationDao.flush();
         m_notificationDao.flush();
@@ -356,18 +349,6 @@ public class DatabasePopulator {
                 10);
         getOnmsMapElementDao().save(mapElement);
         getOnmsMapElementDao().flush();
-        
-        final DataLinkInterface dli = new DataLinkInterface(node1, 1, node1.getId(), 1, StatusType.ACTIVE, new Date());
-        getDataLinkInterfaceDao().save(dli);
-        getDataLinkInterfaceDao().flush();
-        
-        final DataLinkInterface dli2 = new DataLinkInterface(node1, 2, node1.getId(), 1, StatusType.ACTIVE, new Date());
-        getDataLinkInterfaceDao().save(dli2);
-        getDataLinkInterfaceDao().flush();
-        
-        final DataLinkInterface dli3 = new DataLinkInterface(node2, 1, node1.getId(), 1, StatusType.ACTIVE, new Date());
-        getDataLinkInterfaceDao().save(dli3);
-        getDataLinkInterfaceDao().flush();
         
         final OnmsAcknowledgment ack = new OnmsAcknowledgment();
         ack.setAckTime(new Date());
@@ -808,14 +789,6 @@ public class DatabasePopulator {
         this.m_onmsMapElementDao = onmsMapElementDao;
     }
 
-    public DataLinkInterfaceDao getDataLinkInterfaceDao() {
-        return m_dataLinkInterfaceDao;
-    }
-
-    public void setDataLinkInterfaceDao(final DataLinkInterfaceDao dataLinkInterfaceDao) {
-        this.m_dataLinkInterfaceDao = dataLinkInterfaceDao;
-    }
-    
     public AcknowledgmentDao getAcknowledgmentDao() {
         return m_acknowledgmentDao;
     }

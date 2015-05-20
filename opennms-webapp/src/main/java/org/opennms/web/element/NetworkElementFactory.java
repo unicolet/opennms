@@ -58,7 +58,6 @@ import org.opennms.core.spring.BeanUtils;
 import org.opennms.core.utils.InetAddressComparator;
 import org.opennms.core.utils.InetAddressUtils;
 import org.opennms.netmgt.dao.api.CategoryDao;
-import org.opennms.netmgt.dao.api.DataLinkInterfaceDao;
 import org.opennms.netmgt.dao.api.IpInterfaceDao;
 import org.opennms.netmgt.dao.api.IpRouteInterfaceDao;
 import org.opennms.netmgt.dao.api.MonitoredServiceDao;
@@ -68,7 +67,6 @@ import org.opennms.netmgt.dao.api.SnmpInterfaceDao;
 import org.opennms.netmgt.dao.api.StpInterfaceDao;
 import org.opennms.netmgt.dao.api.StpNodeDao;
 import org.opennms.netmgt.dao.api.VlanDao;
-import org.opennms.netmgt.model.DataLinkInterface;
 import org.opennms.netmgt.model.OnmsArpInterface;
 import org.opennms.netmgt.model.OnmsArpInterface.StatusType;
 import org.opennms.netmgt.model.OnmsCategory;
@@ -111,9 +109,6 @@ public class NetworkElementFactory implements InitializingBean, NetworkElementFa
     
     @Autowired
     private SnmpInterfaceDao m_snmpInterfaceDao;
-    
-    @Autowired
-    private DataLinkInterfaceDao m_dataLinkInterfaceDao;
 
     @Autowired
     private IpRouteInterfaceDao m_ipRouteInterfaceDao;
@@ -909,21 +904,6 @@ public class NetworkElementFactory implements InitializingBean, NetworkElementFa
         return routes;
     }
 
-    /* (non-Javadoc)
-	 * @see org.opennms.web.element.NetworkElementFactoryInterface#isParentNode(int)
-	 */
-    @Override
-    public boolean isParentNode(int nodeId) {
-        OnmsCriteria criteria = new OnmsCriteria(DataLinkInterface.class);
-        criteria.add(Restrictions.eq("nodeParentId", nodeId));
-        criteria.add(Restrictions.ne("status", StatusType.DELETED));
-        
-        int count = m_dataLinkInterfaceDao.countMatching(criteria);
-        
-        return (count > 0);
-        
-    }
-
     /**
      * <p>isBridgeNode</p>
      *
@@ -960,147 +940,6 @@ public class NetworkElementFactory implements InitializingBean, NetworkElementFa
         return (count > 0);
     }
 
-    /**
-     * <p>getLinkedNodeIdOnNode</p>
-     *
-     * @param nodeID a int.
-     * @return a {@link java.util.Set} object.
-     * @throws java.sql.SQLException if any.
-     */
-    @Override
-    public Set<Integer> getLinkedNodeIdOnNode(int nodeID) {
-        Set<Integer> nodes = new TreeSet<Integer>();
-
-        for (DataLinkInterface link: m_dataLinkInterfaceDao.findByNodeId(nodeID)) {
-            Integer linkedNodeId = link.getNodeParentId();
-            if (nodes.contains(linkedNodeId) || link.getStatus().equals(StatusType.DELETED))
-                continue;
-            nodes.add(linkedNodeId);            
-        }
-
-        for (DataLinkInterface link : m_dataLinkInterfaceDao.findByNodeParentId(nodeID)) {
-            Integer linkedNodeId = link.getNodeId();
-            if (nodes.contains(linkedNodeId) || link.getStatus().equals(StatusType.DELETED))
-                continue;
-            nodes.add(linkedNodeId);            
-        }
-        
-        // Remove all nulls, TreeSets cannot contain null
-        return nodes;
-    }
-    
-    /* (non-Javadoc)
-	 * @see org.opennms.web.element.NetworkElementFactoryInterface#getDataLinksOnNode(int)
-	 */
-    @Override
-    public List<LinkInterface> getDataLinksOnNode(int nodeId) {
-        OnmsCriteria criteria = new OnmsCriteria(org.opennms.netmgt.model.DataLinkInterface.class);
-        criteria.createAlias("node", "node", OnmsCriteria.LEFT_JOIN);
-        criteria.add(Restrictions.eq("node.id", nodeId));
-        criteria.add(Restrictions.ne("status", StatusType.DELETED));
-        criteria.addOrder(Order.asc("ifIndex"));
-
-        List<LinkInterface> ifaces = getDataLinkInterface(m_dataLinkInterfaceDao.findMatching(criteria),nodeId);
-
-        criteria = new OnmsCriteria(org.opennms.netmgt.model.DataLinkInterface.class);
-        criteria.add(Restrictions.eq("nodeParentId", nodeId));
-        criteria.add(Restrictions.ne("status", StatusType.DELETED));
-
-        ifaces.addAll(getDataLinkInterface(m_dataLinkInterfaceDao.findMatching(criteria),nodeId));
-        
-        return ifaces;
-    	
-    }
-
-    @Override
-    public List<LinkInterface> getDataLinksOnInterface(int nodeId, String ipAddress){
-    	Interface iface = getInterface(nodeId, ipAddress);
-    	if (iface != null && Integer.valueOf(iface.getIfIndex()) != null && iface.getIfIndex() > 0) {
-    		return getDataLinksOnInterface(nodeId, iface.getIfIndex());    		
-    	}
-    	return new ArrayList<LinkInterface>();
-    }
-    
-    @Override
-    public List<LinkInterface> getDataLinksOnInterface(int id){
-    	Interface iface = getInterface(id);
-    	if (iface != null && Integer.valueOf(iface.getIfIndex()) != null && iface.getIfIndex() > 0) {
-    		return getDataLinksOnInterface(iface.getNodeId(), iface.getIfIndex());    		
-    	}
-    	return new ArrayList<LinkInterface>();    	
-    }
-
-
-    /* (non-Javadoc)
-	 * @see org.opennms.web.element.NetworkElementFactoryInterface#getDataLinksOnInterface(int, int)
-	 */
-    @Override
-    public List<LinkInterface> getDataLinksOnInterface(int nodeId, int ifIndex){
-        OnmsCriteria criteria = new OnmsCriteria(org.opennms.netmgt.model.DataLinkInterface.class);
-        criteria.createAlias("node", "node", OnmsCriteria.LEFT_JOIN);
-        criteria.add(Restrictions.eq("node.id", nodeId));
-        criteria.add(Restrictions.eq("ifIndex", ifIndex));
-        criteria.add(Restrictions.ne("status", StatusType.DELETED));
-
-        List<LinkInterface> ifaces = getDataLinkInterface(m_dataLinkInterfaceDao.findMatching(criteria),nodeId);
-
-        criteria = new OnmsCriteria(org.opennms.netmgt.model.DataLinkInterface.class);
-        criteria.add(Restrictions.eq("nodeParentId", nodeId));
-        criteria.add(Restrictions.eq("parentIfIndex", ifIndex));
-        criteria.add(Restrictions.ne("status", StatusType.DELETED));
-        criteria.addOrder(Order.asc("parentIfIndex"));
-
-        ifaces.addAll(getDataLinkInterface(m_dataLinkInterfaceDao.findMatching(criteria),nodeId));
-        
-        return ifaces;
-    	
-    	
-    }
-
-
-    private List<LinkInterface> getDataLinkInterface(List<DataLinkInterface> dlifaces, int nodeId) {
-    	List<LinkInterface> lifaces = new ArrayList<LinkInterface>();
-    	for (DataLinkInterface dliface: dlifaces) {
-    		if (dliface.getNode().getId() == nodeId) {
-    			lifaces.add(createLinkInterface(dliface, false));
-    		} else if (dliface.getNodeParentId() == nodeId ) {
-    			lifaces.add(createLinkInterface(dliface, true));
-    		}
-    	}
-    	return lifaces;
-    }
-    
-    /*
-     * Casi d'uso
-     * 1) nessuna interfaccia associabile (come rappresentare il link?) 
-     * se il nodo ha una sola interfaccia allora va associata anche a quella
-     * altrimenti non la associamo
-     * 2) node ha ip interface e node parent has SNMP interface
-     * 3) node ha una interfaccia SNMP e node parent pure
-     * 
-     */
-    private LinkInterface createLinkInterface(DataLinkInterface dliface, boolean isParent) {
-
-        Integer nodeid = dliface.getNode().getId();
-        Integer ifindex = dliface.getIfIndex();
-
-        Integer linkedNodeid = dliface.getNodeParentId();
-        Integer linkedIfindex = dliface.getParentIfIndex();
-
-        if (isParent) {
-            nodeid = dliface.getNodeParentId();
-            ifindex = dliface.getParentIfIndex();
-            
-            linkedNodeid = dliface.getNode().getId();
-            linkedIfindex = dliface.getIfIndex();
-        } 
-    		
-        Interface iface = getInterfaceForLink(nodeid, ifindex);
-        Interface linkedIface = getInterfaceForLink(linkedNodeid, linkedIfindex); 
-    		
-        return new LinkInterface(dliface, isParent, iface, linkedIface);
-    }
-	
     private Interface getInterfaceForLink(int nodeid, int ifindex) {
 	Interface iface = null;
 	if (ifindex > 0 ) {

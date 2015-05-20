@@ -293,12 +293,6 @@
   
   <onmsgi:service interface="org.opennms.netmgt.dao.api.RequisitionedCategoryAssociationDao" ref="requisitionedCategoryAssociationDao" />
 
-  <bean id="linkStateDao" class="org.opennms.netmgt.dao.hibernate.LinkStateDaoHibernate">
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-  
-  <onmsgi:service interface="org.opennms.netmgt.dao.api.LinkStateDao" ref="linkStateDao" />
-
   <bean id="reportCatalogDao" class="org.opennms.netmgt.dao.hibernate.ReportCatalogDaoHibernate">
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
@@ -547,12 +541,6 @@
   </bean>
 
   <onmsgi:service interface="org.opennms.netmgt.dao.api.OnmsMapElementDao" ref="onmsMapElementDao" />
-
-  <bean id="dataLinkInterfaceDao" class="org.opennms.netmgt.dao.hibernate.DataLinkInterfaceDaoHibernate">
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-  
-  <onmsgi:service interface="org.opennms.netmgt.dao.api.DataLinkInterfaceDao" ref="dataLinkInterfaceDao" />
 
   <bean id="simpleJdbcTemplate" class="org.springframework.jdbc.core.simple.SimpleJdbcTemplate">
     <constructor-arg ref="jdbcTemplate" />

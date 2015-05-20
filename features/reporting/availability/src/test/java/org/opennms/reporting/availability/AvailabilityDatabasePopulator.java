@@ -39,7 +39,6 @@ import org.opennms.netmgt.dao.api.AcknowledgmentDao;
 import org.opennms.netmgt.dao.api.AlarmDao;
 import org.opennms.netmgt.dao.api.AssetRecordDao;
 import org.opennms.netmgt.dao.api.CategoryDao;
-import org.opennms.netmgt.dao.api.DataLinkInterfaceDao;
 import org.opennms.netmgt.dao.api.DistPollerDao;
 import org.opennms.netmgt.dao.api.EventDao;
 import org.opennms.netmgt.dao.api.IpInterfaceDao;
@@ -111,7 +110,6 @@ public class AvailabilityDatabasePopulator {
     private LocationMonitorDao m_locationMonitorDao;
     private OnmsMapDao m_onmsMapDao;
     private OnmsMapElementDao m_onmsMapElementDao;
-    private DataLinkInterfaceDao m_dataLinkInterfaceDao;
     private AcknowledgmentDao m_acknowledgmentDao;
     
     private OnmsNode m_node1;
@@ -463,14 +461,6 @@ public class AvailabilityDatabasePopulator {
         this.m_onmsMapElementDao = onmsMapElementDao;
     }
 
-    public DataLinkInterfaceDao getDataLinkInterfaceDao() {
-        return m_dataLinkInterfaceDao;
-    }
-
-    public void setDataLinkInterfaceDao(DataLinkInterfaceDao dataLinkInterfaceDao) {
-        this.m_dataLinkInterfaceDao = dataLinkInterfaceDao;
-    }
-    
     public AcknowledgmentDao getAcknowledgmentDao() {
         return m_acknowledgmentDao;
     }

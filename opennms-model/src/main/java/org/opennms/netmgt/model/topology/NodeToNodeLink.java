@@ -29,7 +29,7 @@
 package org.opennms.netmgt.model.topology;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.opennms.netmgt.model.DataLinkInterface.DiscoveryProtocol;
+import org.opennms.netmgt.model.DiscoveryProtocol;
 
 /**
  * <p>NodeToNodeLink class.</p>
