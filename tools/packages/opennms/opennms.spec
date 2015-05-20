@@ -757,7 +757,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files plugin-provisioning-link
 %defattr(664 root root 775)
-%{instprefix}/lib/opennms-link-provisioning-adapter*.jar
 %config(noreplace) %{instprefix}/etc/link-adapter-configuration.xml
 %config(noreplace) %{instprefix}/etc/endpoint-configuration.xml
 %{sharedir}/etc-pristine/link-adapter-configuration.xml
