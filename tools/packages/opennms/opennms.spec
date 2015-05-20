@@ -245,21 +245,6 @@ provisioned nodes.
 %{extrainfo2}
 
 
-%package plugin-provisioning-link
-Summary:	Link Provisioning Adapter
-Group:		Applications/System
-Requires(pre):	%{name}-core = %{version}-%{release}
-Requires:	%{name}-core = %{version}-%{release}
-
-%description plugin-provisioning-link
-The link provisioning adapter creates links between provisioned nodes based on naming
-conventions defined in the link-adapter-configuration.xml file.  It also updates the
-status of the map links based on data link events.
-
-%{extrainfo}
-%{extrainfo2}
-
-
 %package plugin-provisioning-map
 Summary:	Map Provisioning Adapter
 Group:		Applications/System
@@ -591,7 +576,6 @@ find $RPM_BUILD_ROOT%{instprefix}/etc ! -type d | \
 	grep -v 'dhcpd-configuration.xml' | \
 	grep -v 'endpoint-configuration.xml' | \
 	grep -v 'jira.properties' | \
-	grep -v 'link-adapter-configuration.xml' | \
 	grep -v 'mapsadapter-configuration.xml' | \
 	grep -v 'nsclient-config.xml' | \
 	grep -v 'nsclient-datacollection-config.xml' | \
@@ -616,7 +600,6 @@ find $RPM_BUILD_ROOT%{sharedir}/etc-pristine ! -type d | \
 	grep -v 'dhcpd-configuration.xml' | \
 	grep -v 'endpoint-configuration.xml' | \
 	grep -v 'jira.properties' | \
-	grep -v 'link-adapter-configuration.xml' | \
 	grep -v 'mapsadapter-configuration.xml' | \
 	grep -v 'nsclient-config.xml' | \
 	grep -v 'nsclient-datacollection-config.xml' | \
@@ -754,13 +737,6 @@ rm -rf $RPM_BUILD_ROOT
 %files plugin-provisioning-dns
 %defattr(664 root root 775)
 %{instprefix}/lib/opennms-dns-provisioning-adapter*.jar
-
-%files plugin-provisioning-link
-%defattr(664 root root 775)
-%config(noreplace) %{instprefix}/etc/link-adapter-configuration.xml
-%config(noreplace) %{instprefix}/etc/endpoint-configuration.xml
-%{sharedir}/etc-pristine/link-adapter-configuration.xml
-%{sharedir}/etc-pristine/endpoint-configuration.xml
 
 %files plugin-provisioning-map
 %defattr(664 root root 775)
