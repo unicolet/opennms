@@ -574,7 +574,6 @@ find $RPM_BUILD_ROOT%{instprefix}/etc ! -type d | \
 	grep -v 'drools-engine.d/ncs' | \
 	grep -v '3gpp' | \
 	grep -v 'dhcpd-configuration.xml' | \
-	grep -v 'endpoint-configuration.xml' | \
 	grep -v 'jira.properties' | \
 	grep -v 'mapsadapter-configuration.xml' | \
 	grep -v 'nsclient-config.xml' | \
@@ -598,7 +597,6 @@ find $RPM_BUILD_ROOT%{sharedir}/etc-pristine ! -type d | \
 	grep -v 'drools-engine.d/ncs' | \
 	grep -v '3gpp' | \
 	grep -v 'dhcpd-configuration.xml' | \
-	grep -v 'endpoint-configuration.xml' | \
 	grep -v 'jira.properties' | \
 	grep -v 'mapsadapter-configuration.xml' | \
 	grep -v 'nsclient-config.xml' | \
