@@ -193,8 +193,6 @@ Summary:	All Plugins
 Group:		Applications/System
 Requires(pre):	%{name}-plugin-provisioning-dns
 Requires:	%{name}-plugin-provisioning-dns
-Requires(pre):	%{name}-plugin-provisioning-link
-Requires:	%{name}-plugin-provisioning-link
 Requires(pre):	%{name}-plugin-provisioning-map
 Requires:	%{name}-plugin-provisioning-map
 Requires(pre):	%{name}-plugin-provisioning-rancid
