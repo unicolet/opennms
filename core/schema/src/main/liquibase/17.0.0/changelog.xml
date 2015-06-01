@@ -116,4 +116,13 @@
     <dropTable tableName="linkstate"/>
     <dropTable tableName="datalinkinterface"/>
   </changeSet>
+
+  <!-- Drop unused servermap table -->
+  <changeSet author="seth" id="17.0.0-drop-servermap-table">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="servermap"/>
+    </preConditions> 
+    <dropTable tableName="servermap" />
+  </changeSet>
+
 </databaseChangeLog>
