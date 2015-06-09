@@ -175,17 +175,6 @@ public class NetworkElementFactoryTest implements InitializingBean {
     	assertEquals("active interfaces", 4, intfs.length);
     	
     }
-        
-    @Test
-    @Transactional
-    @JUnitTemporaryDatabase
-    public void testGetAtInterfaces() throws Exception {
-        AtInterface atif = NetworkElementFactory.getInstance(m_appContext).getAtInterface(m_dbPopulator.getNode2().getId(), "192.168.2.1");
-        assertEquals("AA:BB:CC:DD:EE:FF", atif.get_physaddr());
-        
-        List<OnmsNode> nodes = NetworkElementFactory.getInstance(m_appContext).getNodesFromPhysaddr("AA:BB:CC:DD:EE:FF");
-        assertEquals(1, nodes.size());
-    }
 
     @Test
     @JUnitTemporaryDatabase

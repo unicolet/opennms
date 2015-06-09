@@ -405,10 +405,6 @@ public interface NetworkElementFactoryInterface {
 	 */
 	List<OnmsNode> getNodesFromPhysaddr(String atPhysAddr);
 
-	AtInterface getAtInterface(int nodeId, String ipAddr);
-
-    IpRouteInterface[] getIpRoute(int nodeId);
-
 	/**
 	 * Returns all non-deleted nodes with an IP address like the rule given.
 	 *
@@ -442,18 +438,6 @@ public interface NetworkElementFactoryInterface {
 	List<OnmsNode> getNodesWithCategories(String[] categories1,
 			String[] categories2, boolean onlyNodesWithDownAggregateStatus);
 
-    boolean isRouteInfoNode(int nodeId) throws SQLException;
-
-    boolean isBridgeNode(int nodeId) throws SQLException;
-
-    StpNode[] getStpNode(int nodeId) throws SQLException;
-
-    StpInterface[] getStpInterface(int nodeId) throws SQLException;
-
-    StpInterface[] getStpInterface(int nodeId, int ifIndex) throws SQLException;
-
-    Vlan[] getVlansOnNode(int nodeID) throws SQLException;
-    
     Integer getIfIndex(int ipinterfaceid);
     
     Integer getIfIndex(int nodeID, String ipaddr);

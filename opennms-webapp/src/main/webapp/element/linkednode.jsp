@@ -181,9 +181,6 @@
     //find if SNMP is on this node 
     Service[] snmpServices = factory.getServicesOnNode(nodeId, this.snmpServiceId);
 
-    boolean isBridge = factory.isBridgeNode(nodeId);
-    boolean isRouteIP = factory.isRouteInfoNode(nodeId);
-
 %>
 
 <% pageContext.setAttribute("nodeId", nodeId); %>
@@ -265,23 +262,6 @@
     <div class="panel-heading">
 			<h3 class="panel-title">General (Status: <%=(node_db == null ? "Unknown" : ElementUtil.getNodeStatusString(node_db))%>)</h3>
     </div>
-			<% if( isRouteIP || isBridge ) { %>
-			<div class="panel-body">
-			     <ul class="list-inline">
-		            <% if( isRouteIP ) { %>
-		            <li>
-		            	<a href="element/routeipnode.jsp?node=<%=nodeId%>">View Node IP Route Info</a>
-		            </li>
-		            <% }%>
-		         
-		            <% if( isBridge ) { %>
-		            <li>
-						<a href="element/bridgenode.jsp?node=<%=nodeId%>">View Node Bridge/STP Info</a>
-					</li>
-		            <% }%>		
-		         </ul>	     
-			</div>
-			<% }%>
 	</div>
 
 <!--  BRIDGE Links -->
@@ -490,7 +470,7 @@
 			<th>Version</th>
 			<th>Device Id</th>
 			<th>Device Port</th> 
-      <th>Platform</th>
+            <th>Platform</th>
 			<th>Created</th>
 			<th>Last Poll</th>
 			</tr>
