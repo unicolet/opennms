@@ -57,7 +57,6 @@ import org.opennms.netmgt.model.OnmsNode;
 import org.opennms.netmgt.rrd.RrdDataSource;
 import org.opennms.netmgt.rrd.RrdRepository;
 import org.opennms.netmgt.rrd.RrdStrategy;
-import org.opennms.netmgt.rrd.RrdUtils;
 import org.opennms.netmgt.snmp.SnmpInstId;
 import org.opennms.netmgt.snmp.SnmpResult;
 import org.opennms.netmgt.snmp.SnmpValue;
@@ -76,8 +75,6 @@ public class SnmpAttributeTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-
-        RrdUtils.setStrategy(m_rrdStrategy);
     }
 
     @Override
@@ -129,7 +126,7 @@ public class SnmpAttributeTest extends TestCase {
         ipInterface.setNode(node);
         ipInterface.setIpAddress(InetAddressUtils.addr("192.168.1.1"));
 
-        expect(m_ipInterfaceDao.load(1)).andReturn(ipInterface).times(3);
+        expect(m_ipInterfaceDao.load(1)).andReturn(ipInterface).times(7); // It used to be 3, but I think it is more correct to use getStoreDir from DefaultCollectionAgentService on DefaultCollectionAgent (NMS-7516)
 
         expect(m_rrdStrategy.getDefaultFileExtension()).andReturn(".myLittleEasyMockedStrategyAndMe").anyTimes();
         expect(m_rrdStrategy.createDefinition(isA(String.class), isA(String.class), isA(String.class), anyInt(), isAList(RrdDataSource.class), isAList(String.class))).andReturn(new Object());
@@ -162,7 +159,7 @@ public class SnmpAttributeTest extends TestCase {
         RrdRepository repository = new RrdRepository();
         repository.setRraList(Collections.singletonList("RRA:AVERAGE:0.5:1:2016"));
 
-        final BasePersister persister = new BasePersister(new ServiceParameters(new HashMap<String, Object>()), repository);
+        final BasePersister persister = new BasePersister(new ServiceParameters(new HashMap<String, Object>()), repository, m_rrdStrategy);
         persister.createBuilder(nodeInfo, "baz", attributeType);
         
         final AtomicInteger count = new AtomicInteger(0);
