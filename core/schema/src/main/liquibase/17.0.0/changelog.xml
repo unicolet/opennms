@@ -118,8 +118,8 @@
     <dropTable tableName="vlan"/>
     <dropTable tableName="stpnode"/>
     <dropTable tableName="stpinterface"/>
-    <dropTable tableName="map"/>
     <dropTable tableName="element"/>
+    <dropTable tableName="map"/>
     <dropTable tableName="iprouteinterface"/>
     <dropTable tableName="atinterface"/>
   </changeSet>
