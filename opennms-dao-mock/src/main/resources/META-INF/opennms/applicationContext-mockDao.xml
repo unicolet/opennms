@@ -102,12 +102,6 @@
     <bean id="notificationDao" class="org.opennms.netmgt.dao.mock.MockNotificationDao" />
     <onmsgi:service interface="org.opennms.netmgt.dao.api.NotificationDao" ref="notificationDao" />
 
-    <bean id="onmsMapDao" class="org.opennms.netmgt.dao.mock.MockOnmsMapDao" />
-    <onmsgi:service interface="org.opennms.netmgt.dao.api.OnmsMapDao" ref="onmsMapDao" />
-
-    <bean id="onmsMapElementDao" class="org.opennms.netmgt.dao.mock.MockOnmsMapElementDao" />
-    <onmsgi:service interface="org.opennms.netmgt.dao.api.OnmsMapElementDao" ref="onmsMapElementDao" />
-
     <bean id="outageDao" class="org.opennms.netmgt.dao.mock.MockOutageDao" />
     <onmsgi:service interface="org.opennms.netmgt.dao.api.OutageDao" ref="outageDao" />
 
