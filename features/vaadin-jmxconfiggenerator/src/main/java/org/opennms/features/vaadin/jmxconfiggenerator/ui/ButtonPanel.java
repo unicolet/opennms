@@ -1,8 +1,7 @@
-<%--
 /*******************************************************************************
  * This file is part of OpenNMS(R).
  *
- * Copyright (C) 2002-2014 The OpenNMS Group, Inc.
+ * Copyright (C) 2013-2014 The OpenNMS Group, Inc.
  * OpenNMS(R) is Copyright (C) 1999-2014 The OpenNMS Group, Inc.
  *
  * OpenNMS(R) is a registered trademark of The OpenNMS Group, Inc.
@@ -27,21 +26,39 @@
  *     http://www.opennms.com/
  *******************************************************************************/
 
---%>
+package org.opennms.features.vaadin.jmxconfiggenerator.ui;
 
-<%@page language="java"
-	contentType="text/html"
-	session="true"
-%>
+import org.opennms.features.vaadin.jmxconfiggenerator.data.ModelChangeListener;
 
-<jsp:include page="/includes/bootstrap.jsp" flush="false" >
-  <jsp:param name="title" value="JMX Configuration Generator" />
-  <jsp:param name="headTitle" value="JMX Configuration Generator" />
-  <jsp:param name="location" value="admin" />
-  <jsp:param name="breadcrumb" value="<a href='admin/index.jsp'>Admin</a>" />
-  <jsp:param name="breadcrumb" value="JMX Configuration Generator" />
-  <jsp:param name="vaadinEmbeddedStyles" value="true" />
-</jsp:include>
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.HorizontalLayout;
 
-<iframe src="osgi/jmx-config-tool" frameborder="0" style="height:100%; width:100%;"></iframe>
-<jsp:include page="/includes/bootstrap-footer.jsp" flush="true"/>
+public class ButtonPanel extends HorizontalLayout implements ModelChangeListener<UiState> {
+	private final Button next;
+	private final Button previous;
+
+	public ButtonPanel(ClickListener listener) {
+		next = UIHelper.createButton("", "next", IconProvider.BUTTON_NEXT, listener);
+		previous = UIHelper.createButton("", "previous", IconProvider.BUTTON_PREVIOUS, listener);
+		setMargin(true);
+		setSpacing(true);
+
+		addComponent(previous);
+		addComponent(next);
+	}
+
+	public Button getNext() {
+		return next;
+	}
+	
+	public Button getPrevious() {
+		return previous;
+	}
+	
+	@Override
+	public void modelChanged(UiState newModel) {
+		previous.setVisible(newModel.hasPrevious());
+		next.setVisible(newModel.hasNext());
+	}
+}

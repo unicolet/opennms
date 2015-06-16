@@ -1,8 +1,7 @@
-<%--
 /*******************************************************************************
  * This file is part of OpenNMS(R).
  *
- * Copyright (C) 2002-2014 The OpenNMS Group, Inc.
+ * Copyright (C) 2012-2014 The OpenNMS Group, Inc.
  * OpenNMS(R) is Copyright (C) 1999-2014 The OpenNMS Group, Inc.
  *
  * OpenNMS(R) is a registered trademark of The OpenNMS Group, Inc.
@@ -27,21 +26,43 @@
  *     http://www.opennms.com/
  *******************************************************************************/
 
---%>
+package org.opennms.features.vaadin.jmxconfiggenerator.ui.mbeans;
 
-<%@page language="java"
-	contentType="text/html"
-	session="true"
-%>
+/**
+ *
+ * @author Markus von Rüden
+ */
+public class ViewStateChangedEvent {
 
-<jsp:include page="/includes/bootstrap.jsp" flush="false" >
-  <jsp:param name="title" value="JMX Configuration Generator" />
-  <jsp:param name="headTitle" value="JMX Configuration Generator" />
-  <jsp:param name="location" value="admin" />
-  <jsp:param name="breadcrumb" value="<a href='admin/index.jsp'>Admin</a>" />
-  <jsp:param name="breadcrumb" value="JMX Configuration Generator" />
-  <jsp:param name="vaadinEmbeddedStyles" value="true" />
-</jsp:include>
+	/**
+	 * old view state
+	 */
+	private ViewState oldState;
+	/**
+	 * new view state
+	 */
+	private ViewState newState;
+	/**
+	 * which object is responsible for the view state change. Notice: Usually it is not the button or the element which
+	 * invokes the view state change.
+	 */
+	private Object source;
 
-<iframe src="osgi/jmx-config-tool" frameborder="0" style="height:100%; width:100%;"></iframe>
-<jsp:include page="/includes/bootstrap-footer.jsp" flush="true"/>
+	public ViewStateChangedEvent(ViewState oldState, ViewState newState, Object source) {
+		this.oldState = oldState;
+		this.newState = newState;
+		this.source = source;
+	}
+
+	public ViewState getOldState() {
+		return oldState;
+	}
+
+	public ViewState getNewState() {
+		return newState;
+	}
+
+	public Object getSource() {
+		return source;
+	}
+}
