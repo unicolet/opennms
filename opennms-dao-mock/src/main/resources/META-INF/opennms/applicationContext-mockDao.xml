@@ -51,9 +51,6 @@
     <bean id="assetRecordDao" class="org.opennms.netmgt.dao.mock.MockAssetRecordDao" />
     <onmsgi:service interface="org.opennms.netmgt.dao.api.AssetRecordDao" ref="assetRecordDao" />
 
-    <bean id="atInterfaceDao" class="org.opennms.netmgt.dao.mock.MockAtInterfaceDao" />
-    <onmsgi:service interface="org.opennms.netmgt.dao.api.AtInterfaceDao" ref="atInterfaceDao" />
-
     <bean id="categoryDao" class="org.opennms.netmgt.dao.mock.MockCategoryDao" />
     <onmsgi:service interface="org.opennms.netmgt.dao.api.CategoryDao" ref="categoryDao" />
 
