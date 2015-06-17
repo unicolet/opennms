@@ -129,12 +129,6 @@
         <property name="reloadCheckInterval" value="-1" />
     </bean>
 
-    <bean id="stpInterfaceDao" class="org.opennms.netmgt.dao.mock.MockStpInterfaceDao" />
-    <onmsgi:service interface="org.opennms.netmgt.dao.api.StpInterfaceDao" ref="stpInterfaceDao" />
-
-    <bean id="stpNodeDao" class="org.opennms.netmgt.dao.mock.MockStpNodeDao" />
-    <onmsgi:service interface="org.opennms.netmgt.dao.api.StpNodeDao" ref="stpNodeDao" />
-
     <bean id="init-snmpPeerFactory" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
         <property name="staticMethod"><value>org.opennms.netmgt.config.SnmpPeerFactory.init</value></property>
     </bean>
@@ -160,9 +154,6 @@
 
     <bean id="requisitionedCategoryAssociationDao" class="org.opennms.netmgt.dao.mock.MockRequisitionedCategoryAssociationDao" />
     <onmsgi:service interface="org.opennms.netmgt.dao.api.RequisitionedCategoryAssociationDao" ref="requisitionedCategoryAssociationDao" />
-
-    <bean id="vlanDao" class="org.opennms.netmgt.dao.mock.MockVlanDao" />
-    <onmsgi:service interface="org.opennms.netmgt.dao.api.VlanDao" ref="vlanDao" />
 
     <!-- 
     <bean id="resourceDao" class="org.opennms.netmgt.dao.support.DefaultResourceDao">
