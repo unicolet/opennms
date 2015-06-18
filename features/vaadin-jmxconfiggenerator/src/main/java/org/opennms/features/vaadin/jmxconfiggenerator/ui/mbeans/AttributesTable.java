@@ -32,6 +32,9 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.validator.StringLengthValidator;
+import com.vaadin.event.FieldEvents;
+import com.vaadin.server.UserError;
+import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -42,10 +45,8 @@ import com.vaadin.ui.TextField;
 import org.opennms.features.vaadin.jmxconfiggenerator.Config;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.MetaAttribItem;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.MetaAttribItem.AttribType;
-import org.opennms.features.vaadin.jmxconfiggenerator.ui.mbeans.MBeansController.Callback;
 import org.opennms.features.vaadin.jmxconfiggenerator.ui.validators.AttributeNameValidator;
 import org.opennms.features.vaadin.jmxconfiggenerator.ui.validators.UniqueAttributeNameValidator;
-import org.opennms.xmlns.xsd.config.jmx_datacollection.Mbean;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,56 +57,44 @@ import java.util.Map;
  *
  * @author Markus von Rüden
  */
-public class AttributesTable extends Table {
+public class AttributesTable<T> extends Table {
 
-	private final Map<Object, Field<String>> fieldsToValidate = new HashMap<Object, Field<String>>();
-	private List<Field<?>> fields = new ArrayList<Field<?>>();
+	private final Map<Object, Field<String>> fieldsToValidate = new HashMap<>();
+	private List<Field<?>> fields = new ArrayList<>();
 	private final UniqueAttributeNameValidator uniqueAttributeNameValidator;
-	private final Callback callback;
 
-	public AttributesTable(NameProvider provider, MBeansController.Callback callback) {
-		this.callback = callback;
-		this.uniqueAttributeNameValidator =  new UniqueAttributeNameValidator(provider, fieldsToValidate);
+	public AttributesTable(NameProvider provider) {
+		uniqueAttributeNameValidator =  new UniqueAttributeNameValidator(provider, fieldsToValidate);
 		setSizeFull();
 		setSelectable(false);
-		setEditable(false);
+		setEditable(true);
 		setValidationVisible(true);
 		setReadOnly(true);
 		setImmediate(true);
-		setTableFieldFactory(new AttributesTableFieldFactory());		
+		setTableFieldFactory(new AttributesTableFieldFactory());
+		setValidationVisible(false);
 	}
 
-	public void modelChanged(Mbean bean) {
+	public void modelChanged(T bean, Container container) {
 		if (getData() == bean) return;
 		setData(bean);
 		fieldsToValidate.clear();
 		fields.clear();
-		setContainerDataSource(callback.getContainer());
-		if (getContainerDataSource() == MBeansController.AttributesContainerCache.NULL) return;
-		setVisibleColumns(new Object[]{MetaAttribItem.SELECTED, MetaAttribItem.NAME, MetaAttribItem.ALIAS, MetaAttribItem.TYPE});
-	}
+		setContainerDataSource(container);
+		if (getContainerDataSource() == AttributesContainerCache.NULL) return;
+		setVisibleColumns(
+				MetaAttribItem.SELECTED,
+				MetaAttribItem.NAME,
+				MetaAttribItem.ALIAS,
+				MetaAttribItem.TYPE);
 
-	void viewStateChanged(ViewStateChangedEvent event) {
-		switch (event.getNewState()) {
-			case Init:
-				fieldsToValidate.clear();
-				fields.clear();
-			case NonLeafSelected:
-				modelChanged(null);
-				break;
-			case LeafSelected:
-				setReadOnly(true);
-				break;
-//			case Edit:
-//				setReadOnly(event.getSource() != this);
-//				break;
-		}
+		validate();
 	}
 
 	private class AttributesTableFieldFactory implements TableFieldFactory {
 
 		private final Validator nameValidator = new AttributeNameValidator();
-		private final Validator lengthValidator = new StringLengthValidator(String.format("Maximal length is %d", Config.ATTRIBUTES_ALIAS_MAX_LENGTH), 0, Config.ATTRIBUTES_ALIAS_MAX_LENGTH, false); 
+		private final Validator lengthValidator = new StringLengthValidator(String.format("Maximum length is %d", Config.ATTRIBUTES_ALIAS_MAX_LENGTH), 0, Config.ATTRIBUTES_ALIAS_MAX_LENGTH, false);
 
 		@Override
 		public Field<?> createField(Container container, Object itemId, Object propertyId, Component uiContext) {
@@ -120,8 +109,9 @@ public class AttributesTable extends Table {
 				c.setBuffered(true);
 				field = c;
 			}
-			if (propertyId.toString().equals(MetaAttribItem.TYPE))
+			if (propertyId.toString().equals(MetaAttribItem.TYPE)) {
 				field = createType(itemId);
+			}
 			if (field == null) return null;
 			fields.add(field);
 			return field;
@@ -140,16 +130,25 @@ public class AttributesTable extends Table {
 
 		private TextField createAlias(Object itemId) {
 			final TextField tf = new TextField();
-			tf.setValidationVisible(true);
+			tf.setValidationVisible(false);
 			tf.setBuffered(true);
 			tf.setImmediate(true);
 			tf.setRequired(true);
-			tf.setWidth(100, Unit.PERCENTAGE);
+			tf.setWidth(300, Unit.PIXELS);
 			tf.setMaxLength(Config.ATTRIBUTES_ALIAS_MAX_LENGTH);
-			tf.setRequiredError("You must provide an attribute name.");
+			tf.setRequiredError("You must provide a name.");
 			tf.addValidator(nameValidator);
 			tf.addValidator(lengthValidator);
 			tf.addValidator(uniqueAttributeNameValidator);
+			tf.setTextChangeTimeout(200);
+			tf.addTextChangeListener(new FieldEvents.TextChangeListener() {
+				@Override
+				public void textChange(FieldEvents.TextChangeEvent event) {
+					tf.setComponentError(null);
+					tf.setValue(event.getText());
+					tf.validate();
+				}
+			});
 			tf.setData(itemId);
 			return tf;
 		}
@@ -158,26 +157,37 @@ public class AttributesTable extends Table {
 	@Override
 	public void commit() throws SourceException, InvalidValueException {
 		super.commit();
-		if (isReadOnly()) return; //we do not commit on read only
-		for (Field<?> f : fields) f.commit();
+		for (Field<?> f : fields) {
+			f.commit();
+		}
 	}
 
 	@Override
 	public void discard() throws SourceException {
 		super.discard();
-		for (Field<?> f : fields) f.discard();
+		for (Field<?> f : fields) {
+			f.discard();
+		}
 	}
-	
+
 	@Override
 	public void validate() throws InvalidValueException {
-		super.validate();
 		InvalidValueException validationException = null;
+		try {
+			super.validate();
+		} catch (Validator.InvalidValueException ex) {
+			validationException = ex;
+		}
+
 		//validators must be invoked manually
 		for (Field<?> tf : fieldsToValidate.values()) {
 			try {
 				tf.validate();
+				((AbstractComponent) tf).setComponentError(null); // reset previous errors
 			} catch (InvalidValueException ex) {
+				// we want to validate ALL fields to show all errors at once
 				validationException = ex;
+				((AbstractComponent) tf).setComponentError(new UserError(ex.getMessage()));
 			}
 		}
 		if (validationException != null) throw validationException;
@@ -187,9 +197,9 @@ public class AttributesTable extends Table {
 	public boolean isValid() {
 		try {
 			validate();
+			return true;
 		} catch (InvalidValueException invex) {
 			return false;
 		}
-		return true;
 	}
 }

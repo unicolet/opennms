@@ -106,19 +106,19 @@ class MBeansItemStrategyHandler {
 
 		@Override
 		public void setItemProperties(Item item, Object itemId) {
-			item.getItemProperty(MetaMBeanItem.ICON).setValue(FontAwesome.ANDROID); //IconProvider.getIcon(IconProvider.PACKAGE_ICON));
-			item.getItemProperty(MetaMBeanItem.CAPTION).setValue(itemId);
-			item.getItemProperty(MetaMBeanItem.TOOLTIP).setValue(itemId);
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.ICON).setValue(IconProvider.DUMMY);
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.CAPTION).setValue(itemId);
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.TOOLTIP).setValue(itemId);
 		}
 
 		@Override
 		public void handleSelectDeselect(Item item, Object itemId, boolean selected) {
-			item.getItemProperty(MetaMBeanItem.SELECTED).setValue(selected);
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.SELECTED).setValue(selected);
 		}
 
 		@Override
 		public void updateIcon(Item item) {
-			MBeansItemStrategyHandler.updateIcon(item, (Boolean) item.getItemProperty(MetaMBeanItem.SELECTED).getValue());
+			MBeansItemStrategyHandler.updateIcon(item, (Boolean) item.getItemProperty(MBeansTree.MetaMBeansTreeItem.SELECTED).getValue());
 		}
 
 		@Override
@@ -131,19 +131,19 @@ class MBeansItemStrategyHandler {
 
 		@Override
 		public void setItemProperties(Item item, Object itemId) {
-			item.getItemProperty(MetaMBeanItem.ICON).setValue(FontAwesome.GLASS); //IconProvider.getIcon(IconProvider.PACKAGE_ICON));
-			item.getItemProperty(MetaMBeanItem.CAPTION).setValue(((Map.Entry) itemId).getValue());
-			item.getItemProperty(MetaMBeanItem.TOOLTIP).setValue(((Map.Entry) itemId).getValue());
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.ICON).setValue(IconProvider.DUMMY);
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.CAPTION).setValue(((Map.Entry) itemId).getValue());
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.TOOLTIP).setValue(((Map.Entry) itemId).getValue());
 		}
 
 		@Override
 		public void handleSelectDeselect(Item item, Object itemId, boolean selected) {
-			item.getItemProperty(MetaMBeanItem.SELECTED).setValue(selected);
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.SELECTED).setValue(selected);
 		}
 
 		@Override
 		public void updateIcon(Item item) {
-			MBeansItemStrategyHandler.updateIcon(item, (Boolean) item.getItemProperty(MetaMBeanItem.SELECTED).getValue());
+			MBeansItemStrategyHandler.updateIcon(item, (Boolean) item.getItemProperty(MBeansTree.MetaMBeansTreeItem.SELECTED).getValue());
 		}
 
 		@Override
@@ -158,23 +158,22 @@ class MBeansItemStrategyHandler {
 		public void setItemProperties(Item item, Object itemId) {
 			if (!(itemId instanceof Mbean)) return;
 			Mbean bean = (Mbean) itemId;
-			item.getItemProperty(MetaMBeanItem.ICON).setValue(FontAwesome.SITEMAP); //IconProvider.getIcon(IconProvider.MBEANS_ICON));
-			item.getItemProperty(MetaMBeanItem.OBJECTNAME).setValue(bean.getObjectname());
-			item.getItemProperty(MetaMBeanItem.NAME).setValue(bean.getName());
-			item.getItemProperty(MetaMBeanItem.TOOLTIP).setValue(bean.getObjectname());
-			item.getItemProperty(MetaMBeanItem.CAPTION).setValue(MBeansHelper.getLeafLabel(bean));
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.ICON).setValue(FontAwesome.SITEMAP); //IconProvider.getIcon(IconProvider.MBEANS_ICON));
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.TOOLTIP).setValue(bean.getObjectname());
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.CAPTION).setValue(MBeansHelper.getLeafLabel(bean));
 		}
 
 		@Override
 		public void handleSelectDeselect(Item item, Object itemId, boolean selected) {
-			item.getItemProperty(MetaMBeanItem.SELECTED).setValue(selected);
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.SELECTED).setValue(selected);
 		}
 
 		@Override
 		public void updateIcon(Item item) {
-			MBeansItemStrategyHandler.updateIcon(item, (Boolean) item.getItemProperty(MetaMBeanItem.SELECTED).getValue());
+			MBeansItemStrategyHandler.updateIcon(item, (Boolean) item.getItemProperty(MBeansTree.MetaMBeansTreeItem.SELECTED).getValue());
 		}
 
+		// TODO MVR wann wird das hier eigentlich aufgerufen?
 		@Override
 		public void updateModel(Item item, Object itemId) {
 			if (itemId == null || !(itemId instanceof Mbean)) return;
@@ -187,19 +186,19 @@ class MBeansItemStrategyHandler {
 
 		@Override
 		public void setItemProperties(Item item, Object itemId) {
-			item.getItemProperty(MetaMBeanItem.ICON).setValue(FontAwesome.GITHUB); //IconProvider.getIcon(IconProvider.MBEANS_ICON));
-			item.getItemProperty(MetaMBeanItem.CAPTION).setValue(((CompAttrib)itemId).getName());
-			item.getItemProperty(MetaMBeanItem.TOOLTIP).setValue(((CompAttrib)itemId).getName());
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.ICON).setValue(IconProvider.DUMMY);
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.CAPTION).setValue(((CompAttrib) itemId).getName());
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.TOOLTIP).setValue(((CompAttrib) itemId).getName());
 		}
 
 		@Override
 		public void handleSelectDeselect(Item item, Object itemId, boolean selected) {
-			item.getItemProperty(MetaMBeanItem.SELECTED).setValue(selected);
+			item.getItemProperty(MBeansTree.MetaMBeansTreeItem.SELECTED).setValue(selected);
 		}
 
 		@Override
 		public void updateIcon(Item item) {
-			MBeansItemStrategyHandler.updateIcon(item, (Boolean) item.getItemProperty(MetaMBeanItem.SELECTED).getValue());
+			MBeansItemStrategyHandler.updateIcon(item, (Boolean) item.getItemProperty(MBeansTree.MetaMBeansTreeItem.SELECTED).getValue());
 		}
 
 		@Override
@@ -209,6 +208,6 @@ class MBeansItemStrategyHandler {
 	}
 
 	private static void updateIcon(Item item, boolean selected) {
-		item.getItemProperty(MetaMBeanItem.ICON).setValue(IconProvider.getIconForSelection(selected));
+		item.getItemProperty(MBeansTree.MetaMBeansTreeItem.ICON).setValue(IconProvider.getIconForSelection(selected));
 	}
 }

@@ -36,10 +36,6 @@ package org.opennms.features.vaadin.jmxconfiggenerator.data;
  * @see org.opennms.xmlns.xsd.config.jmx_datacollection.Mbean
  */
 public interface MetaMBeanItem {
-	final String TOOLTIP = "caption";
-	String ICON = "icon";
-	String SELECTED = "selected";
-	String OBJECTNAME = "name";
-	String NAME = "editableName";
-	String CAPTION = "label";
+	String OBJECTNAME = "objectname";
+	String NAME = "name";
 }

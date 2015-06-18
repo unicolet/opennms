@@ -56,28 +56,7 @@ public interface FormParameter {
 	 */
 	String getNonEditablePropertyName();
 
-	/**
-	 * Returns the property names of all properties, which are visible.
-	 * 
-	 * @return the property names of all properties, which are visible.
-	 */
-	Object[] getVisiblePropertieNames();
+	String getEditablePropertyCaption();
 
-	/**
-	 * Returns an optional callback which is invoked after the usual hooks from
-	 * {@link EditControls} have been invoked and executed. May return null.
-	 * 
-	 * @return an optional callback which is invoked after the usual hooks from
-	 *         {@link EditControls} have been invoked and executed. May return
-	 *         null.
-	 */
-	@SuppressWarnings("rawtypes")
-	EditControls.Callback getAdditionalCallback();
-
-	/**
-	 * Defines wether the {@link NameEditForm} has a footer or not.
-	 * 
-	 * @return true if there is any footer, false otherwise.
-	 */
-	public boolean hasFooter();
+	String getNonEditablePropertyCaption();
 }

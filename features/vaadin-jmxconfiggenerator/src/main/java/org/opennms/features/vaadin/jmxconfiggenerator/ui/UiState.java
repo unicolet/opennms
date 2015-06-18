@@ -28,8 +28,6 @@
 
 package org.opennms.features.vaadin.jmxconfiggenerator.ui;
 
-import java.util.Arrays;
-
 public enum UiState {
 	IntroductionView("Introduction", true), 
 	ServiceConfigurationView("Service Configuration", true), 
@@ -41,7 +39,7 @@ public enum UiState {
 	private final String description;
 	private boolean ui;
 
-	private UiState(String description, boolean ui) {
+	UiState(String description, boolean ui) {
 		this.description = description;
 		this.ui = ui;
 	}

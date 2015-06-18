@@ -28,17 +28,39 @@
 
 package org.opennms.features.vaadin.jmxconfiggenerator.data;
 
+import com.vaadin.data.Item;
+
 /**
  * One part of the observer pattern. It indicates if the given model <code>T</code> has changed.
  * In future releases a ModelChangeEvent may be introduced.
  * 
  * @author Markus von Rüden
  */
-public interface ModelChangeListener<T extends Object> {
+public interface SelectionChangedListener<T> {
+
+	class SelectionChangedEvent<T> {
+
+		private final Item selectedItem;
+		private T selectedBean;
+
+		public SelectionChangedEvent(Item selectedItem, T selectedBean) {
+			this.selectedItem = selectedItem;
+			this.selectedBean = selectedBean;
+		}
+
+		public Item getSelectedItem()  {
+			return selectedItem;
+		}
+
+		public T getSelectedBean() {
+			return selectedBean;
+		}
+	}
+
 
 	/**
-	 * Is invoked after a model changes.
-	 * @param newModel the new model
+	 * Is invoked after a selection changes.
+	 * @param changeEvent the change Event
 	 */
-	void modelChanged(T newModel);
+	void selectionChanged(SelectionChangedEvent<T> changeEvent);
 }

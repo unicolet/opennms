@@ -33,24 +33,25 @@ import com.vaadin.annotations.Title;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.VaadinRequest;
-import com.vaadin.ui.*;
 import com.vaadin.ui.Notification.Type;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
 import org.opennms.features.jmxconfiggenerator.Starter;
 import org.opennms.features.jmxconfiggenerator.graphs.GraphConfigGenerator;
 import org.opennms.features.jmxconfiggenerator.graphs.JmxConfigReader;
 import org.opennms.features.jmxconfiggenerator.graphs.Report;
 import org.opennms.features.jmxconfiggenerator.jmxconfig.JmxDatacollectionConfiggenerator;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.ModelChangeListener;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.ServiceConfig;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.UiModel;
-import org.opennms.features.vaadin.jmxconfiggenerator.ui.ConfigView;
-import org.opennms.features.vaadin.jmxconfiggenerator.ui.mbeans.MBeansView;
 import org.opennms.features.vaadin.jmxconfiggenerator.ui.ConfigResultView;
+import org.opennms.features.vaadin.jmxconfiggenerator.ui.ConfigView;
 import org.opennms.features.vaadin.jmxconfiggenerator.ui.HeaderPanel;
 import org.opennms.features.vaadin.jmxconfiggenerator.ui.IntroductionView;
-import org.opennms.features.vaadin.jmxconfiggenerator.ui.ModelChangeRegistry;
 import org.opennms.features.vaadin.jmxconfiggenerator.ui.ProgressWindow;
+import org.opennms.features.vaadin.jmxconfiggenerator.ui.UIHelper;
 import org.opennms.features.vaadin.jmxconfiggenerator.ui.UiState;
+import org.opennms.features.vaadin.jmxconfiggenerator.ui.mbeans.MBeansView;
 import org.opennms.xmlns.xsd.config.jmx_datacollection.JmxDatacollectionConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,7 @@ import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.util.Collection;
 
-@Theme(Config.STYLE_NAME)
+@Theme("jmxconfiggenerator")
 @Title("JmxConfigGenerator UI Tool")
 @SuppressWarnings("serial")
 public class JmxConfigGeneratorUI extends UI {
@@ -83,7 +84,6 @@ public class JmxConfigGeneratorUI extends UI {
 	private ProgressWindow progressWindow;
 
 	private UiModel model = new UiModel();
-//	private ModelChangeRegistry modelChangeRegistry = new ModelChangeRegistry();
 	private Navigator navigator;
 
 	@Override
@@ -93,7 +93,6 @@ public class JmxConfigGeneratorUI extends UI {
 		initMainLayout();
 		initNavigator();
 
-//		registerListener(UiModel.class, this);
 		updateView(UiState.IntroductionView);
 	}
 
@@ -142,7 +141,6 @@ public class JmxConfigGeneratorUI extends UI {
 
 	private void initHeaderPanel() {
 		headerPanel = new HeaderPanel();
-//		registerListener(UiState.class, headerPanel);
 	}
 
 	// the Main panel holds all views such as Config view, mbeans view, etc.
@@ -168,56 +166,7 @@ public class JmxConfigGeneratorUI extends UI {
 
 	public void updateView(UiState uiState) {
 		navigator.navigateTo(uiState.name());
-//		switch (uiState) {
-//			case IntroductionView:
-//			case ServiceConfigurationView:
-//			case MbeansView:
-//			case ResultView:
-//				setContentPanelComponent(getView(uiState));
-//				notifyObservers(UiModel.class, model);
-//				break;
-//			case MbeansDetection:
-//				showProgressWindow(uiState.getDescription() + ".\n\n This may take a while ...");
-//				new DetectMBeansWorkerThread().start();
-//				break;
-//			case ResultConfigGeneration:
-//				showProgressWindow(uiState.getDescription() +  ".\n\n This may take a while ...");
-//				new CreateOutputWorkerThread().start();
-//				break;
-//		}
-//		notifyObservers(UiState.class,  uiState);
 	}
-
-//	private Component createView(UiState uiState, JmxConfigGeneratorUI app) {
-//		Component component = null;
-//		switch (uiState) {
-//			case IntroductionView:
-//				component = new IntroductionView(app);
-//				break;
-//			case ServiceConfigurationView:
-//				component = new ConfigView(app);
-//				registerListener(UiModel.class, (ModelChangeListener<?>) component);
-//				break;
-//			case MbeansView:
-//				component = new MBeansView(app);
-//				registerListener(UiModel.class, (ModelChangeListener<?>) component);
-//				break;
-//			case ResultView:
-//				component = new ConfigResultView(app);
-//				registerListener(UiModel.class, (ModelChangeListener<?>) component);
-//				break;
-//		}
-//		return component;
-//	}
-
-//	private Component getView(UiState uiState) {
-//		if (viewCache.get(uiState) == null) {
-//			Component component = createView(uiState, JmxConfigGeneratorUI.this);
-//			if (component == null) return null; // no "real" view
-//			viewCache.put(uiState, component);
-//		}
-//		return viewCache.get(uiState);
-//	}
 
 	private ProgressWindow getProgressWindow() {
 		if (progressWindow == null) {
@@ -231,15 +180,11 @@ public class JmxConfigGeneratorUI extends UI {
 		addWindow(getProgressWindow());
 	}
 
-//	private void registerListener(Class<?> aClass, ModelChangeListener<?> listener) {
-//		modelChangeRegistry.registerListener(aClass, listener);
-//	}
+	private void setRawModel(JmxDatacollectionConfig newModel) {
+		model.setRawModel(newModel);
+	}
 
-//	private void notifyObservers(Class<?> aClass, Object object) {
-//		modelChangeRegistry.notifyObservers(aClass, object);
-//	}
-	
-    private class DetectMBeansWorkerThread extends Thread {
+	private class DetectMBeansWorkerThread extends Thread {
 
 		private ServiceConfig config;
 
@@ -260,11 +205,13 @@ public class JmxConfigGeneratorUI extends UI {
 				UI.getCurrent().access(new Runnable() {
 					@Override
 					public void run() {
-						model.setRawModel(generateJmxConfigModel);
+						setRawModel(generateJmxConfigModel);
 						updateView(UiState.MbeansView);
 					}
 				});
-			} catch (IOException | SecurityException ex) {
+			} catch (Exception ex) {
+			 	// I know this is bad, but we have to catch
+			 	// ALL Exceptions, otherwise we are in "please wait" mode forever
 				handleError(ex);
 			}
         }
@@ -273,9 +220,9 @@ public class JmxConfigGeneratorUI extends UI {
 			UI.getCurrent().access(new Runnable() {
 				@Override
 				public void run() {
-					//TODO MVR logging?
-					LOG.error("TODO", ex);
-					Notification.show("Connection error", "An error occured during connection jmx service. Please verify connection settings.<br/><br/>" + ex.getMessage(), Type.ERROR_MESSAGE);
+					LOG.error("Error while retrieving MBeans from server", ex);
+					UIHelper.showNotification("Connection error", "An error occured during connection. Please verify connection settings.<br/><br/>" + ex.getMessage(), Type.ERROR_MESSAGE);
+					removeWindow(getProgressWindow());
 				}
 			});
         }
@@ -285,28 +232,37 @@ public class JmxConfigGeneratorUI extends UI {
 
 		@Override
 		public void run() {
-			// create snmp-graph.properties
+			try {
+				// create snmp-graph.properties
+				GraphConfigGenerator graphConfigGenerator = new GraphConfigGenerator();
+				Collection<Report> reports = new JmxConfigReader().generateReportsByJmxDatacollectionConfig(model.getOutputConfig());
+				model.setSnmpGraphProperties(graphConfigGenerator.generateSnmpGraph(reports));
+			} catch (IOException ex) {
+				handleError(ex);
+			}
 
-			GraphConfigGenerator graphConfigGenerator = new GraphConfigGenerator();
-			Collection<Report> reports = new JmxConfigReader().generateReportsByJmxDatacollectionConfig(model.getOutputConfig());
+			model.updateOutput();
 
 			UI.getCurrent().access(new Runnable() {
 				@Override
 				public void run() {
-					try {
-						model.setSnmpGraphProperties(graphConfigGenerator.generateSnmpGraph(reports));
-						model.updateOutput();
-						updateView(UiState.ResultView);
-					} catch (IOException ex) {
-						model.setSnmpGraphProperties(ex.getMessage()); // TODO handle Errors in UI
-						LOG.error("SNMP Graph-Properties couldn't be created.", ex);
-					}
+					updateView(UiState.ResultView);
 				}
 			});
-
-
-
 		}
+
+
+		private void handleError(final Exception ex) {
+			UI.getCurrent().access(new Runnable() {
+				@Override
+				public void run() {
+					LOG.error("SNMP Graph-Properties couldn't be created.", ex);
+					UIHelper.showNotification("Error", ex.getMessage(), Type.ERROR_MESSAGE);
+					removeWindow(getProgressWindow());
+				}
+			});
+		}
+
 	}
 
 	public UiModel getUiModel() {

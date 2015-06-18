@@ -40,7 +40,7 @@ import org.opennms.xmlns.xsd.config.jmx_datacollection.CompAttrib;
  */
 public interface MetaAttribItem {
 
-	public static enum AttribType {
+	enum AttribType {
 		counter, gauge;
 
 		public static AttribType valueOf(Object object) {

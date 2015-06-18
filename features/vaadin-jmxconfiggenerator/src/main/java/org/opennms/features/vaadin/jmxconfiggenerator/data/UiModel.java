@@ -28,13 +28,17 @@
 
 package org.opennms.features.vaadin.jmxconfiggenerator.data;
 
+import org.opennms.netmgt.config.collectd.CollectdConfiguration;
+import org.opennms.netmgt.config.collectd.Collector;
+import org.opennms.netmgt.config.collectd.Package;
+import org.opennms.netmgt.config.collectd.Parameter;
+import org.opennms.netmgt.config.collectd.Service;
+import org.opennms.xmlns.xsd.config.jmx_datacollection.JmxDatacollectionConfig;
+
+import javax.xml.bind.JAXB;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.xml.bind.JAXB;
-
-import org.opennms.xmlns.xsd.config.jmx_datacollection.JmxDatacollectionConfig;
 
 /**
  * This class wraps the <code>JmxDatacollectionConfig</code> and provides some
@@ -49,20 +53,32 @@ public class UiModel {
 
 	public static enum OutputDataKey {
 
-		JmxDataCollectionConfig, SnmpGraphProperties, CollectdConfigSnippet;
+		JmxDataCollectionConfig("jmx-datacollection-config.xml"),
+		SnmpGraphProperties("snmp-graph.properties"),
+		CollectdConfigSnippet("collectd-configuration.xml");
+
+		private final String title;
+
+		OutputDataKey(String title) {
+			this.title = title;
+		}
 
 		public String getDescriptionFilename() {
 			return "/descriptions/" + name() + ".html";
 		}
 
 		public String getDownloadFilename() {
-			return name() + ".properties";
+			return title;
+		}
+
+		public String getTitle() {
+			return title;
 		}
 	}
 
 	private JmxDatacollectionConfig rawModel;
 	private ServiceConfig configModel = new ServiceConfig();
-	// private CollectdConfig collectdConfig;
+	private org.opennms.netmgt.config.collectd.CollectdConfiguration collectdConfig;
 	private final Map<OutputDataKey, String> outputMap = new HashMap<OutputDataKey, String>();
 	private JmxDatacollectionConfig outputConfig;
 	private String snmpGraphProperties;
@@ -98,14 +114,6 @@ public class UiModel {
 		return this.configModel.getServiceName();
 	}
 
-	// public void setCollectdConfig(CollectdConfig collectdConfig) {
-	// this.collectdConfig = collectdConfig;
-	// }
-	//
-	// public CollectdConfig getCollectdConfig() {
-	// return collectdConfig;
-	// }
-
 	public void setOutput(OutputDataKey output, String value) {
 		outputMap.put(output, value);
 	}
@@ -129,7 +137,7 @@ public class UiModel {
 	public void updateOutput() {
 		setOutput(OutputDataKey.JmxDataCollectionConfig, marshal(getOutputConfig()));
 		setOutput(OutputDataKey.SnmpGraphProperties, snmpGraphProperties);
-		setOutput(OutputDataKey.CollectdConfigSnippet, "TODO");
+		setOutput(OutputDataKey.CollectdConfigSnippet, marshal(getCollectdConfiguration()));
 	}
 
 	public void setSnmpGraphProperties(String generatedSnmpGraphProperties) {
@@ -142,67 +150,70 @@ public class UiModel {
 	 * @return The CollecdConfiguration snippet depending on the data saved in
 	 *         this model.
 	 */
-	// public CollectdConfiguration getCollectdConfiguration() {
-	// CollectdConfiguration config = new CollectdConfiguration();
-	//
-	// // set default package
-	// Package defaultPackage = new Package();
-	// defaultPackage.setName("DUMMY-Default-Package-Name");
-	//
-	// // set service
-	// Service service = new Service();
-	// service.setName(getServiceName());
-	// service.setInterval(30000); // TODO set default
-	// service.setUserDefined(Boolean.TRUE.toString());
-	// service.setStatus("on");
-	//
-	// // add parameters to service
-	// service.addParameter(createParameter("port", "17199")); // TODO define
-	// // dynamically
-	// service.addParameter(createParameter("retry", "1"));
-	// service.addParameter(createParameter("timeout", "3000"));
-	// service.addParameter(createParameter("protocol", "rmi"));
-	// service.addParameter(createParameter("urlPath", "/jmxrmi"));
-	// service.addParameter(createParameter("rrd-base-name", "java"));
-	// service.addParameter(createParameter("ds-name", getServiceName()));
-	// service.addParameter(createParameter("friendly-name", getServiceName()));
-	// service.addParameter(createParameter("collection", getServiceName()));
-	// service.addParameter(createParameter("thresholding-enabled",
-	// Boolean.TRUE.toString()));
-	//
-	// // create Collector
-	// Collector collector = new Collector();
-	// collector.setService(getServiceName());
-	// collector.setClassName("abc"); // TODO define dynamically
-	// // collector.setClassName(Jsr160Collector.class.getName());
-	//
-	// // register service, package and collector to configuration
-	// config.addPackage(defaultPackage);
-	// config.addCollector(collector);
-	// defaultPackage.addService(service);
-	//
-	// return config;
-	// }
+	 public CollectdConfiguration getCollectdConfiguration() {
+		 CollectdConfiguration config = new CollectdConfiguration();
 
-	// /**
-	// * Creates a Parameter object and sets the key and value.
-	// *
-	// * @param key
-	// * The key for the Parameter object. Should not be null.
-	// * @param value
-	// * The value for the Parameter object. Should not be null.
-	// * @return The Parameter object with key value according to method
-	// * arguments.
-	// */
-	// private static Parameter createParameter(final String key, final String
-	// value) {
-	// Parameter parameter = new Parameter();
-	// parameter.setKey(key);
-	// parameter.setValue(value);
-	// return parameter;
-	// }
+		 // set default package
+		 Package defaultPackage = new Package();
+		 defaultPackage.setName("default");
 
-	public static String marshal(Object anyObject) {
+		 // set service
+		 Service service = new Service();
+		 service.setName(getServiceName());
+		 service.setInterval(300000L);
+		 service.setUserDefined(Boolean.TRUE.toString());
+		 service.setStatus("on");
+
+		 // add parameters to service
+		 service.addParameter(createParameter("port", getServiceConfig().getPort()));
+		 service.addParameter(createParameter("retry", "2"));
+		 service.addParameter(createParameter("timeout", "3000"));
+		 service.addParameter(createParameter("protocol", "rmi"));
+		 service.addParameter(createParameter("urlPath", String.format("/%s", getServiceConfig().isJmxmp() ? "jmxmp" : "jmxrmi")));
+		 service.addParameter(createParameter("rrd-base-name", "java"));
+		 service.addParameter(createParameter("ds-name", getServiceName()));
+		 service.addParameter(createParameter("friendly-name", getServiceName()));
+		 service.addParameter(createParameter("collection", getServiceName()));
+		 service.addParameter(createParameter("thresholding-enabled", Boolean.TRUE.toString()));
+
+		 // If we used credentials, we set them here as well
+		 if (getServiceConfig().isAuthenticate()) {
+			 service.addParameter(createParameter("factory", "PASSWORD-CLEAR"));
+			 service.addParameter(createParameter("username", getServiceConfig().getUser()));
+			 service.addParameter(createParameter("password", getServiceConfig().getPassword()));
+		 }
+
+		 // create Collector
+		 Collector collector = new Collector();
+		 collector.setService(getServiceName());
+		 collector.setClassName("org.opennms.netmgt.collectd.Jsr160Collector");
+
+		 // register service, package and collector to configuration
+		 config.addPackage(defaultPackage);
+		 config.addCollector(collector);
+		 defaultPackage.addService(service);
+
+		 return config;
+	 }
+
+	 /**
+	 * Creates a Parameter object and sets the key and value.
+	 *
+	 * @param key
+	 * The key for the Parameter object. Should not be null.
+	 * @param value
+	 * The value for the Parameter object. Should not be null.
+	 * @return The Parameter object with key value according to method
+	 * arguments.
+	 */
+	 private static Parameter createParameter(final String key, final String value) {
+		 Parameter parameter = new Parameter();
+		 parameter.setKey(key);
+		 parameter.setValue(value);
+		 return parameter;
+	 }
+
+	private static String marshal(Object anyObject) {
 		StringWriter stringWriter = new StringWriter();
 		JAXB.marshal(anyObject, stringWriter);
 		return stringWriter.getBuffer().toString();

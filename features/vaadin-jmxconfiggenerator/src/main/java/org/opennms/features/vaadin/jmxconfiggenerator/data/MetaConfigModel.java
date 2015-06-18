@@ -38,7 +38,6 @@ package org.opennms.features.vaadin.jmxconfiggenerator.data;
 public interface MetaConfigModel {
 
 	String SERVICE_NAME = "serviceName";
-	String PACKAGE_NAMES = "packageNames";
 	String JMXMP = "jmxmp";
 	String HOST = "host";
 	String PASSWORD = "password";

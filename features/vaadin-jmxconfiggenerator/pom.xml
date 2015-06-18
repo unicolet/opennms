@@ -40,6 +40,7 @@
                     <features>
                         <feature>vaadin</feature>
                         <feature>jmxconfiggenerator</feature>
+                        <feature>opennms-config-jaxb</feature>
                     </features>
                 </configuration>
             </plugin>
@@ -197,6 +198,11 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.opennms</groupId>
+            <artifactId>opennms-config-jaxb</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>

@@ -30,11 +30,9 @@ package org.opennms.features.vaadin.jmxconfiggenerator.ui;
 
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.ModelChangeListener;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Layout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 

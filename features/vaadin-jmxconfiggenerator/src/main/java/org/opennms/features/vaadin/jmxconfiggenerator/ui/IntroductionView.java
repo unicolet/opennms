@@ -30,17 +30,14 @@ package org.opennms.features.vaadin.jmxconfiggenerator.ui;
 
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.UI;
-import org.opennms.features.vaadin.jmxconfiggenerator.JmxConfigGeneratorUI;
-
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Layout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
+import org.opennms.features.vaadin.jmxconfiggenerator.JmxConfigGeneratorUI;
 
 public class IntroductionView extends Panel implements ClickListener, View {
 
@@ -53,8 +50,10 @@ public class IntroductionView extends Panel implements ClickListener, View {
 		setSizeFull();
 		setContent(new VerticalLayout());
 		getContent().setSizeFull();
-		
-		Layout layout = new VerticalLayout();
+
+		VerticalLayout layout = new VerticalLayout();
+		layout.setMargin(true);
+		layout.setSpacing(true);
 		layout.addComponent(new Label(UIHelper.loadContentFromFile(getClass(), "/descriptions/IntroductionView.html"),
 				ContentMode.HTML));
 		layout.addComponent(next);

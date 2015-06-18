@@ -30,19 +30,22 @@ package org.opennms.features.vaadin.jmxconfiggenerator.ui.mbeans;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
+import com.vaadin.data.Validator;
 import com.vaadin.data.util.HierarchicalContainer;
-import com.vaadin.event.ItemClickEvent;
+import com.vaadin.data.validator.StringLengthValidator;
+import com.vaadin.ui.Field;
+import org.opennms.features.vaadin.jmxconfiggenerator.Config;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.JmxCollectionCloner;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.MetaMBeanItem;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.ModelChangeListener;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.ModelChangeNotifier;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.SelectableBeanItemContainer;
+import org.opennms.features.vaadin.jmxconfiggenerator.data.SelectionChangedListener;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.StringRenderer;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.UiModel;
-import org.opennms.features.vaadin.jmxconfiggenerator.ui.ModelChangeRegistry;
+import org.opennms.features.vaadin.jmxconfiggenerator.ui.UIHelper;
+import org.opennms.features.vaadin.jmxconfiggenerator.ui.validators.AttributeNameValidator;
+import org.opennms.features.vaadin.jmxconfiggenerator.ui.validators.NameValidator;
+import org.opennms.features.vaadin.jmxconfiggenerator.ui.validators.UniqueAttributeNameValidator;
 import org.opennms.xmlns.xsd.config.jmx_datacollection.Attrib;
 import org.opennms.xmlns.xsd.config.jmx_datacollection.CompAttrib;
 import org.opennms.xmlns.xsd.config.jmx_datacollection.CompMember;
@@ -50,7 +53,6 @@ import org.opennms.xmlns.xsd.config.jmx_datacollection.JmxDatacollectionConfig;
 import org.opennms.xmlns.xsd.config.jmx_datacollection.Mbean;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,143 +62,40 @@ import java.util.Map;
  * 
  * @author Markus von Rüden
  */
-public class MBeansController implements ModelChangeNotifier, ViewStateChangedListener, ModelChangeListener<UiModel>,
-		NameProvider {
-	public static interface Callback {
-		Container getContainer();
-	}
+public class MBeansController implements NameProvider {
 
 	/**
-	 * The MBeanTree shows all available MBeans. Each Mbean has one or more
-	 * attributes. Each attribute is selectable. The MBean's attributes are
-	 * shown in a table. The problem is, that we must store the "is selected"
-	 * state of each AttributeItem. So we have two choices:<br/>
-	 * 
-	 * 1. add ALL attributes from ALL MBeans to the container of the table and
-	 * show only the one belonging to the selected Mbean.<br/>
-	 * 
-	 * 2. only add selected MBean's attributes to the container and save the
-	 * container for later use.<br/>
-	 * 
-	 * We stick to 2. So at the beginning this class simply maps each MBean to
-	 * its container. But further on we realized that there are more scenarios
-	 * where we have a parent object which has a list of attributes. So the
-	 * {@link AttributesContainerCache} got more generic. Therefore the
-	 * ATTRIBUTETYPE defines the type of the attribute (e.g. {@link Attrib} to
-	 * stick with the MBeans example) and the PARENTTYPE defines the type of the
-	 * parent object (e.g. {@link Mbean} to stick with the MBeans example).
-	 * 
-	 * @param <ATTRIBUTETYPE>
-	 *            The type of the parent object's attributes.
-	 * @param <PARENTTYPE>
-	 *            The type of the parent object which holds the attributes.
-	 * 
-	 * @author Markus von Rüden
+	 * Helper class to save information about selection.
 	 */
-	public static class AttributesContainerCache<ATTRIBUTETYPE, PARENTTYPE> {
+	private static class Selection {
+		private Item item;
+		private Object itemId;
 
-		/**
-		 * We do not want to handle NullPointers, so there is a NULL-Container
-		 * if we need one.
-		 */
-		public static final SelectableBeanItemContainer NULL = new SelectableBeanItemContainer(Object.class);
-
-		/**
-		 * The map to map the container to the parent's object.
-		 */
-		private final Map<PARENTTYPE, SelectableBeanItemContainer<ATTRIBUTETYPE>> containerMap = new HashMap<PARENTTYPE, SelectableBeanItemContainer<ATTRIBUTETYPE>>();
-
-		/**
-		 * The type of the attribute.
-		 */
-		private final Class<? super ATTRIBUTETYPE> type;
-
-		/**
-		 * The collector to get all Attributes from, e.g. to get all Attributes from a MBean.
-		 */
-		private final AttributeCollector<ATTRIBUTETYPE, PARENTTYPE> attribCollector;
-
-		private AttributesContainerCache(Class<? super ATTRIBUTETYPE> type,
-				AttributeCollector<ATTRIBUTETYPE, PARENTTYPE> attribCollector) {
-			this.type = type;
-			this.attribCollector = attribCollector;
+		public Object getItemId() {
+			return itemId;
 		}
 
-		/**
-		 * Gets the container of the given bean. If there is no container a new
-		 * one is created, otherwise the earlier used container is returned.
-		 * 
-		 * @param bean
-		 * @return
-		 */
-		public SelectableBeanItemContainer<ATTRIBUTETYPE> getContainer(PARENTTYPE bean) {
-			if (bean == null) return NULL;
-			if (containerMap.get(bean) != null) return containerMap.get(bean);
-			containerMap.put(bean, new SelectableBeanItemContainer<ATTRIBUTETYPE>(type));
-			initContainer(containerMap.get(bean), bean);
-			return containerMap.get(bean);
+		public Item getItem() {
+			return item;
 		}
 
-		/**
-		 * Initializes the container. So the container must not be null. It simply adds all attributes to the container.
-		 * @param container The container.
-		 * @param bean The parent bean.
-		 */
-		private void initContainer(SelectableBeanItemContainer<ATTRIBUTETYPE> container, PARENTTYPE bean) {
-			for (ATTRIBUTETYPE att : attribCollector.getAttributes(bean)) {
-				container.addItem(att);
-			}
-		}
-
-		/**
-		 * The AttributeCollector retrieves all attributes from the parent's
-		 * object.
-		 * 
-		 * @author Markus von Rüden
-		 * 
-		 * @param <ATTRIBUTETYPE>
-		 *            The type of the attributes.
-		 * @param <PARENTTYPE>
-		 *            The type of the parent's object.
-		 */
-		public static interface AttributeCollector<ATTRIBUTETYPE, PARENTTYPE> {
-
-			/**
-			 * Retrieves all attributes from the parent's object. Usually should
-			 * do something like <code>return parent.getChildren()</code>
-			 * 
-			 * @param parent
-			 *            The parent object.
-			 * @return all attributes from the parent's object.
-			 */
-			List<ATTRIBUTETYPE> getAttributes(PARENTTYPE parent);
+		public void update(Object itemId, Item item) {
+			this.itemId = itemId;
+			this.item = item;
 		}
 	}
 
 	/**
-	 * Vaadin container for the MbeansTree
+	 * Vaadin container for the items to show up in the tree.
 	 */
 	private final MbeansHierarchicalContainer mbeansContainer = new MbeansHierarchicalContainer(this);
-	/**
-	 * Registry to notify underlying components on modelChange events
-	 */
-	private final ModelChangeRegistry registry = new ModelChangeRegistry();
-	/**
-	 * Collection to notify all view components if the ViewState changes. Any
-	 * underlying component can invoke a viewStateChange
-	 */
-	private final Collection<ViewStateChangedListener> viewStateListener = new ArrayList<ViewStateChangedListener>();
+
 	private final MBeansItemStrategyHandler itemStrategyHandler = new MBeansItemStrategyHandler();
-	/**
-	 * the Mbean which is currently selected in the MBeanTree
-	 */
-	private Mbean currentlySelected = null;
-	/**
-	 * The state in which the view is currently
-	 */
-	private ViewState currentState = ViewState.Init; // this would be default,
-														// but we set it
-														// nevertheless
+
+	private Selection currentSelection = new Selection();
+
+	private List<SelectionChangedListener> selectionChangedListener = new ArrayList<>();
+
 	private AttributesContainerCache<Attrib, Mbean> attribContainerCache = new AttributesContainerCache<Attrib, Mbean>(
 			Attrib.class, new AttributesContainerCache.AttributeCollector<Attrib, Mbean>() {
 				@Override
@@ -205,7 +104,7 @@ public class MBeansController implements ModelChangeNotifier, ViewStateChangedLi
 				}
 			});
 
-	// TODO mvonrued -> this is not correct, because we do not want all members,
+	// TODO MVR -> this is not correct, because we do not want all members,
 	// we just want specific ones
 	private AttributesContainerCache<CompAttrib, Mbean> compAttribContainerCache = new AttributesContainerCache<CompAttrib, Mbean>(
 			CompAttrib.class, new AttributesContainerCache.AttributeCollector<CompAttrib, Mbean>() {
@@ -223,66 +122,73 @@ public class MBeansController implements ModelChangeNotifier, ViewStateChangedLi
 				}
 			});
 
-	@Override
-	public void registerListener(Class clazz, ModelChangeListener listener) {
-		registry.registerListener(clazz, listener);
+	private MBeansContentPanel mbeansContentPanel;
+
+	private MBeansTree mbeansTree;
+
+	public void registerSelectionChangedListener(SelectionChangedListener listener) {
+		if (!selectionChangedListener.contains(listener))
+			selectionChangedListener.add(listener);
 	}
 
-	@Override
-	public void notifyObservers(Class clazz, Object newModel) {
-		registry.notifyObservers(clazz, newModel);
+	private void notifyObservers(Selection currentSelection) {
+		// TODO MVR ...
+		SelectionChangedListener.SelectionChangedEvent changeEvent = new SelectionChangedListener.SelectionChangedEvent(currentSelection.getItem(), currentSelection.getItemId());
+		for (SelectionChangedListener eachListener : selectionChangedListener)
+			eachListener.selectionChanged(changeEvent);
 	}
 
 	public MbeansHierarchicalContainer getMBeansHierarchicalContainer() {
 		return mbeansContainer;
 	}
 
+	public void setMbeansTree(MBeansTree mbeansTree) {
+		this.mbeansTree = mbeansTree;
+	}
+
+	public void setMbeansContentPanel(MBeansContentPanel mbeansContentPanel) {
+		this.mbeansContentPanel = mbeansContentPanel;
+	}
+
 	/**
 	 * Updates the view when the selected MBean changes. At first each
-	 * ModelChangeListener are told, that there is a new Mbean to take care of
+	 * SelectionChangedListener are told, that there is a new Mbean to take care of
 	 * (in detail: change the view to list mbean details of new mbean). And of
 	 * course set a new ViewState (e.g. a non Mbean was selected and now a Mbean
 	 * is selected)
-	 * 
-	 * @param event
+	 *
+	 * @param itemId the ItemId (Object Id) to select in the tree.
 	 */
-	protected void updateView(ItemClickEvent event) {
-		if (currentlySelected == event.getItemId()) return; // no change made
-		currentlySelected = event.getItemId() instanceof Mbean ? (Mbean) event.getItemId() : null;
-		registry.notifyObservers(Item.class, event.getItem());
-		registry.notifyObservers(event.getItemId().getClass(), event.getItemId());
-		setState(event.getItemId());
+	protected void selectItemInTree(Object itemId) {
+		if (currentSelection.getItemId() != itemId) {
+			boolean validated = false;
+			try {
+				mbeansContentPanel.validate();
+				validated = true;
+				updateValidState(currentSelection.getItemId(), true);
+				mbeansContentPanel.commit();
+				currentSelection.update(itemId, mbeansContainer.getItem(itemId));
+				notifyObservers(currentSelection);
+				mbeansTree.select(itemId);
+			} catch (Validator.InvalidValueException ex) {
+				updateValidState(currentSelection.getItemId(), false);
+				if (!validated)  {
+					UIHelper.getCurrent().access(new Runnable() {
+						@Override
+						public void run() {
+							mbeansTree.select(currentSelection.getItemId()); // revert Selection
+						}
+					});
+					UIHelper.showValidationError("Cannot change selection. The current view contains errors.");
+				}
+			}
+		}
 	}
-
-	/**
-	 * Gets the next ViewState of the view.
-	 * 
-	 * @param itemId
-	 * @return ViewState.Init if itemId is null, otherwise
-	 *         ViewState.LeafSelected on Mbean selection and NonLeafSelected on
-	 *         non-Mbean selection
-	 */
-	private ViewState getNextState(Object itemId) {
-		if (itemId == null) return ViewState.Init;
-		if (itemId instanceof Mbean) return ViewState.LeafSelected;
-		if (!(itemId instanceof Mbean)) return ViewState.NonLeafSelected;
-		return ViewState.Init;
-	}
-
-	private void setState(Object itemId) {
-		ViewState nextState = getNextState(itemId);
-		if (nextState == currentState) return; // nothing to do
-		fireViewStateChanged(new ViewStateChangedEvent(currentState, nextState, this)); // tell
-																						// the
-																						// underlying
-																						// views
-																						// to
-																						// handle
-																						// the
-																						// view
-																						// state
-																						// change
-																						// :)
+	private void updateValidState(Object itemId, boolean valid) {
+		Item theItem = mbeansContainer.getItem(itemId);
+		if (theItem != null) {
+			theItem.getItemProperty("valid").setValue(Boolean.valueOf(valid)); // set the new validity
+		}
 	}
 
 	public void setItemProperties(Item item, Object itemId) {
@@ -293,33 +199,6 @@ public class MBeansController implements ModelChangeNotifier, ViewStateChangedLi
 		return itemStrategyHandler.getStringRenderer(clazz);
 	}
 
-	@Override
-	public void viewStateChanged(ViewStateChangedEvent event) {
-		currentState = event.getNewState();
-		if (event.getNewState() == ViewState.Init) {
-			attribContainerCache.containerMap.clear();
-			compAttribContainerCache.containerMap.clear();
-			compMemberContainerCache.containerMap.clear();
-		}
-	}
-
-	protected void addView(ViewStateChangedListener view) {
-		viewStateListener.add(view);
-	}
-
-	@Override
-	public void modelChanged(UiModel newModel) {
-		fireViewStateChanged(new ViewStateChangedEvent(currentState, ViewState.Init, this));
-	}
-
-	protected void fireViewStateChanged(ViewState newState, Object source) {
-		fireViewStateChanged(new ViewStateChangedEvent(currentState, newState, source));
-	}
-
-	private void fireViewStateChanged(ViewStateChangedEvent event) {
-		for (ViewStateChangedListener listener : viewStateListener)
-			listener.viewStateChanged(event);
-	}
 
 	void handleDeselect(HierarchicalContainer container, Object itemId) {
 		handleSelectDeselect(container, container.getItem(itemId), itemId, false);
@@ -339,22 +218,29 @@ public class MBeansController implements ModelChangeNotifier, ViewStateChangedLi
 		}
 	}
 
-	public void updateMBeanIcon() {
-		itemStrategyHandler.getStrategy(Mbean.class).updateIcon(mbeansContainer.getItem(currentlySelected));
-	}
+//	public void updateMBeanIcon() {
+//		itemStrategyHandler.getStrategy(Mbean.class).updateIcon(mbeansContainer.getItem(currentlySelected));
+//	}
 
 	public SelectableBeanItemContainer<Attrib> getAttributeContainer(Mbean bean) {
 		return attribContainerCache.getContainer(bean);
 	}
 
-	public void clearAttributesCache() {
-		attribContainerCache.containerMap.clear();
+	private void reset()  {
+		currentSelection.update(null, null);
+		attribContainerCache.clear();
+		compAttribContainerCache.clear();
+		compMemberContainerCache.clear();
 	}
 
-	protected void updateMBean() {
-		itemStrategyHandler.getStrategy(Mbean.class).updateModel(mbeansContainer.getItem(currentlySelected),
-				currentlySelected);
-	}
+//	public void clearAttributesCache() {
+//		attribContainerCache.containerMap.clear();
+//	}
+
+//	protected void updateMBean() {
+//		itemStrategyHandler.getStrategy(Mbean.class).updateModel(mbeansContainer.getItem(currentlySelected),
+//				currentlySelected);
+//	}
 
 	public SelectableBeanItemContainer<CompMember> getCompositeMemberContainer(CompAttrib attrib) {
 		return compMemberContainerCache.getContainer(attrib);
@@ -367,22 +253,28 @@ public class MBeansController implements ModelChangeNotifier, ViewStateChangedLi
 	@Override
 	public Map<Object, String> getNames() {
 		Map<Object, String> names = new HashMap<Object, String>();
-		for (Mbean bean : mbeansContainer.getMBeans()) {
+		for (Mbean bean : getSelectedMbeans()) {
+			SelectableBeanItemContainer<Attrib> attributeContainer = getAttributeContainer(bean);
 			for (Attrib att : bean.getAttrib()) {
-				names.put(att, att.getAlias());
+				if (attributeContainer.getItem(att).isSelected()) {
+					names.put(att, att.getAlias());
+				}
 			}
 			for (CompAttrib compAttrib : bean.getCompAttrib()) {
-				for (CompMember compMember : compAttrib.getCompMember())
-					names.put(compMember, compMember.getAlias());
+				SelectableBeanItemContainer<CompMember> compMemberContainer = getCompositeMemberContainer(compAttrib);
+				for (CompMember compMember : compAttrib.getCompMember()) {
+					if (compMemberContainer.getItem(compMember).isSelected()) {
+						names.put(compMember, compMember.getAlias());
+					}
+				}
 			}
 		}
 		return names;
-
 	}
 
-	protected Mbean getSelectedMBean() {
-		return currentlySelected;
-	}
+//	protected Mbean getSelectedMBean() {
+//		return currentlySelected;
+//	}
 
 	/**
 	 * The whole point was to select/deselect
@@ -393,16 +285,15 @@ public class MBeansController implements ModelChangeNotifier, ViewStateChangedLi
 	 * MBeans/Attribs/CompMembers/CompAttribs and add them manually with the
 	 * changes made in the gui.
 	 * 
-	 * @param controller
-	 *            the MBeansController of the MbeansView (is needed to determine
-	 *            the changes made in gui)
+	 * @param uiModel
+	 *
 	 * @return
 	 */
 	// TODO mvonrued -> I guess we do not need this clone-stuff at all ^^ and it
 	// is too complicated for such a simple
 	// task
 	public JmxDatacollectionConfig createJmxDataCollectionAccordingToSelection(UiModel uiModel) {
-		/**
+		/*
 		 * At First we clone the original collection. This is done, because if
 		 * we make any modifications (e.g. deleting not selected elements) the
 		 * data isn't available in the GUI, too. To avoid reloading the data
@@ -410,7 +301,7 @@ public class MBeansController implements ModelChangeNotifier, ViewStateChangedLi
 		 */
 		JmxDatacollectionConfig clone = JmxCollectionCloner.clone(uiModel.getRawModel());
 
-		/**
+		/*
 		 * At second we remove all MBeans from original data and get only
 		 * selected once.
 		 */
@@ -418,8 +309,8 @@ public class MBeansController implements ModelChangeNotifier, ViewStateChangedLi
 		exportBeans.clear();
 		Iterable<Mbean> selectedMbeans = getSelectedMbeans(getMBeansHierarchicalContainer());
 		for (Mbean mbean : selectedMbeans) {
-			/**
-			 * At 3.1. we remove all Attributes from Mbean, because we only want
+			/*
+			 * We remove all Attributes from Mbean, because we only want
 			 * selected ones.
 			 */
 			Mbean exportBean = JmxCollectionCloner.clone(mbean);
@@ -432,8 +323,8 @@ public class MBeansController implements ModelChangeNotifier, ViewStateChangedLi
 												// add bean
 			}
 			/*
-			 * At 3.2. we remove all CompAttribs and CompMembers from MBean,
-			 * because we only want selected ones :)
+			 * We remove all CompAttribs and CompMembers from MBean,
+			 * because we only want selected ones.
 			 */
 			exportBean.getCompAttrib().clear();
 			for (CompAttrib compAtt : getSelectedCompositeAttributes(mbean, getCompositeAttributeContainer(mbean))) {
@@ -494,7 +385,7 @@ public class MBeansController implements ModelChangeNotifier, ViewStateChangedLi
 	 * The composite attribute should be also selected. There is no check if
 	 * that is the case.
 	 * 
-	 * @param mbean
+	 * @param compAttrib
 	 *            The composite attribute to get all selected composite members
 	 *            from. The composite attribute should be also selected. There
 	 *            is no check if that is the case.
@@ -502,6 +393,60 @@ public class MBeansController implements ModelChangeNotifier, ViewStateChangedLi
 	 */
 	protected Iterable<CompMember> getSelectedCompositeMembers(CompAttrib compAttrib) {
 		return getSelectedCompositeMembers(compAttrib, getCompositeMemberContainer(compAttrib));
+	}
+
+	public void updateDataSource(UiModel newModel) {
+		reset();
+		mbeansContainer.updateDataSource(newModel);
+		mbeansContentPanel.reset();
+		Object firstItemId = mbeansTree.expandAllItems();
+		mbeansTree.select(firstItemId);
+		isValid();
+	}
+
+	// TODO the whole validation is made twice :-/
+	// TODO we can fix that when there is a central "ValidationStrategy"-Handler instance or so
+	public boolean isValid() {
+		List<Validator.InvalidValueException> exceptionList = new ArrayList<Validator.InvalidValueException>();
+		NameValidator nameValidator = new NameValidator();
+
+		Validator attributeNameValidator = new AttributeNameValidator();
+		Validator attributeLengthValidator = new StringLengthValidator(String.format("Maximal length is %d", Config.ATTRIBUTES_ALIAS_MAX_LENGTH), 0, Config.ATTRIBUTES_ALIAS_MAX_LENGTH, false);  // TODO do it more dynamically
+		UniqueAttributeNameValidator attributeUniqueNameValidator = new UniqueAttributeNameValidator(this, new HashMap<Object, Field<String>>());
+
+
+		// 1. validate each MBean (Mbean name without required check!)
+		for (Mbean eachMBean : getSelectedMbeans()) {
+			validate(nameValidator, eachMBean, eachMBean.getName(), exceptionList); // TODO do it more dynamically
+
+			// 2. validate each CompositeAttribute
+			for (CompAttrib eachCompositeAttribute : getSelectedCompositeAttributes(eachMBean)) {
+				validate(nameValidator, eachCompositeAttribute, eachCompositeAttribute.getName(), exceptionList); // TODO do it more dynamically
+
+				for (org.opennms.xmlns.xsd.config.jmx_datacollection.CompMember eachCompMember : getSelectedCompositeMembers(eachCompositeAttribute)) {
+					validate(attributeNameValidator, eachCompMember, eachCompMember.getAlias(), exceptionList); // TODO do it more dynamically
+					validate(attributeLengthValidator, eachCompMember, eachCompMember.getAlias(), exceptionList); // TODO do it more dynamically
+					validate(attributeUniqueNameValidator, eachCompMember, eachCompMember.getAlias(), exceptionList); // TODO do it more dynamically
+				}
+			}
+
+			// 3. validate each Attribute
+			for (Attrib eachAttribute : getSelectedAttributes(eachMBean)) {
+				validate(attributeNameValidator, eachAttribute, eachAttribute.getAlias(), exceptionList); // TODO do it more dynamically
+				validate(attributeLengthValidator, eachAttribute, eachAttribute.getAlias(), exceptionList); // TODO do it more dynamically
+				validate(attributeUniqueNameValidator, eachAttribute, eachAttribute.getAlias(), exceptionList); // TODO do it more dynamically
+			}
+		}
+		return exceptionList.isEmpty();
+	}
+
+	private void validate(Validator validator, Object itemId, Object value, List<Validator.InvalidValueException> exceptionList) {
+		try {
+			validator.validate(value); // TODO do it more dynamically
+		} catch (Validator.InvalidValueException ex) {
+			updateValidState(itemId, false);
+			exceptionList.add(ex);
+		}
 	}
 
 	/**
@@ -513,7 +458,7 @@ public class MBeansController implements ModelChangeNotifier, ViewStateChangedLi
 			@Override
 			public boolean apply(final Mbean bean) {
 				Item item = container.getItem(bean);
-				Property itemProperty = item.getItemProperty(MetaMBeanItem.SELECTED);
+				Property itemProperty = item.getItemProperty(MBeansTree.MetaMBeansTreeItem.SELECTED);
 				if (itemProperty != null && itemProperty.getValue() != null) {
 					return (Boolean) itemProperty.getValue();
 				}

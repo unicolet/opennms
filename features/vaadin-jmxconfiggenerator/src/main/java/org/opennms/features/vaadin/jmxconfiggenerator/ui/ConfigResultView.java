@@ -28,9 +28,29 @@
 
 package org.opennms.features.vaadin.jmxconfiggenerator.ui;
 
+import com.vaadin.navigator.View;
+import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.DownloadStream;
+import com.vaadin.server.FileDownloader;
+import com.vaadin.server.Resource;
+import com.vaadin.server.StreamResource;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.HorizontalSplitPanel;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import org.opennms.features.vaadin.jmxconfiggenerator.JmxConfigGeneratorUI;
+import org.opennms.features.vaadin.jmxconfiggenerator.data.UiModel;
+import org.opennms.features.vaadin.jmxconfiggenerator.data.UiModel.OutputDataKey;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -39,33 +59,13 @@ import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.vaadin.navigator.View;
-import com.vaadin.navigator.ViewChangeListener;
-import org.opennms.features.vaadin.jmxconfiggenerator.JmxConfigGeneratorUI;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.ModelChangeListener;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.UiModel;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.UiModel.OutputDataKey;
-
-import com.vaadin.server.DownloadStream;
-import com.vaadin.server.StreamResource;
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.HorizontalSplitPanel;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-
 /**
  * Represents the result view. It shows all generated configurations (including
  * some description texts) to the user.
  * 
  * @author Markus von Rüden <mvr@opennms.com>
  */
-public class ConfigResultView extends CustomComponent implements ModelChangeListener<UiModel>, Button.ClickListener, View {
+public class ConfigResultView extends CustomComponent implements Button.ClickListener, View {
 
 	/**
 	 * The name of the downlaodable zip archive.
@@ -80,13 +80,15 @@ public class ConfigResultView extends CustomComponent implements ModelChangeList
 	/**
 	 * Stores the content.
 	 */
-	private Map<UiModel.OutputDataKey, TabContent> tabContentMap = new HashMap<UiModel.OutputDataKey, TabContent>();
+	private Map<UiModel.OutputDataKey, TabContent> tabContentMap = new HashMap<>();
 
 	/**
 	 * Panel for previous and download buttons.
 	 */
 	private final ButtonPanel buttonPanel = new ButtonPanel(this);
 	private final JmxConfigGeneratorUI app;
+
+	private final FileDownloader fileDownloader;
 
 	public ConfigResultView(JmxConfigGeneratorUI app) {
 		this.app = app;
@@ -98,79 +100,69 @@ public class ConfigResultView extends CustomComponent implements ModelChangeList
 		mainLayout.addComponent(buttonPanel);
 
 		tabSheet.setSizeFull();
-		// TODO set tab name differently (e.g. SNMP Graph properties snippet)
 		tabContentMap.put(OutputDataKey.JmxDataCollectionConfig, new TabContent(OutputDataKey.JmxDataCollectionConfig));
 		tabContentMap.put(OutputDataKey.SnmpGraphProperties, new TabContent(OutputDataKey.SnmpGraphProperties));
 		tabContentMap.put(OutputDataKey.CollectdConfigSnippet, new TabContent(OutputDataKey.CollectdConfigSnippet));
 
 		// add all tabs
-		for (TabContent eachContent : tabContentMap.values())
+		for (TabContent eachContent : tabContentMap.values()) {
 			tabSheet.addTab(eachContent, eachContent.getCaption());
+		}
+
 		tabSheet.setSelectedTab(0); // select first component!
 
-		buttonPanel.getNext().setVisible(false); // TODO MVR enable button again and allow to download
 		buttonPanel.getNext().setCaption("download all");
-		buttonPanel.getNext().setIcon(IconProvider.getIcon(IconProvider.BUTTON_SAVE));
+		buttonPanel.getNext().setDescription("Download a zip file containing the JMX datacollection configuration");
+		buttonPanel.getNext().setIcon(IconProvider.BUTTON_SAVE);
+
+		// this is a dummy resource as we are going to set the real
+		// resource when entering the view.
+		fileDownloader = new FileDownloader(new Resource() {
+			@Override
+			public String getMIMEType() {
+				return "application/unknown";
+			}
+		});
+		fileDownloader.extend(buttonPanel.getNext());
 
 		mainLayout.setExpandRatio(tabSheet, 1);
+		mainLayout.setSizeFull();
 		setCompositionRoot(mainLayout);
 	}
 
 	@Override
 	public void buttonClick(ClickEvent event) {
-		if (event.getSource().equals(buttonPanel.getPrevious())) app.updateView(UiState.MbeansView);
-//		if (event.getSource().equals(buttonPanel.getNext())) downloadConfigFile(event);
+		if (event.getSource().equals(buttonPanel.getPrevious())) {
+			app.updateView(UiState.MbeansView);
+		}
 	}
 
 	/**
-	 * Initiates the download of the String data shown in the currently selected
-	 * tab.
-	 * 
-	 * @param event
-	 *            The ClickEvent which indicates the download action.
+	 * Creates a map with the content for the zip file to create.
 	 */
-	private void downloadConfigFile(ClickEvent event) {
+	private Map<String, String> createZipContentMap() {
 		// key: filename, value: file content
-		Map<String, String> zipContentMap = new HashMap<String, String>();
+		Map<String, String> zipContentMap = new HashMap<>();
 		// create map for the downloadable zip file
 		for (OutputDataKey eachKey : tabContentMap.keySet()) {
 			// config file
 			zipContentMap.put(eachKey.getDownloadFilename(), tabContentMap.get(eachKey).getConfigContent());
 			// description file
-			zipContentMap.put(flatten(eachKey.getDescriptionFilename()), tabContentMap.get(eachKey)
-					.getDescriptionText());
+//			zipContentMap.put(flatten(eachKey.getDescriptionFilename()), tabContentMap.get(eachKey).getDescriptionText());
 		}
-		// initiate download
-//                new FileDownloader(new DownloadResource(zipContentMap, DOWNLOAD_FILE_NAME, getUI())).extend(event.getButton());
-//		event.getButton().getUI().open(new DownloadResource(zipContentMap, DOWNLOAD_FILE_NAME, getUI()));
-	}
-
-	/**
-	 * Removes all directory-entries if there are any and simply returns the
-	 * filename.
-	 * 
-	 * @param filename
-	 *            The path to the file including the filename (e.g.
-	 *            /descriptions/abc.txt)
-	 * @return returns only the filename (e.g. abc.txt)
-	 */
-	private String flatten(String filename) {
-		return new File(filename).getName();
+		return zipContentMap;
 	}
 
 	@Override
-	public void modelChanged(UiModel newValue) {
+	public void enter(ViewChangeListener.ViewChangeEvent event) {
+		UiModel newValue = UIHelper.getCurrent().getUiModel();
 		if (newValue == null) return;
 		for (Entry<UiModel.OutputDataKey, String> eachEntry : newValue.getOutputMap().entrySet()) {
 			if (tabContentMap.get(eachEntry.getKey()) != null) {
 				tabContentMap.get(eachEntry.getKey()).setConfigContent(eachEntry.getValue());
 			}
 		}
-	}
-
-	@Override
-	public void enter(ViewChangeListener.ViewChangeEvent event) {
-
+		fileDownloader.setFileDownloadResource(new DownloadResource(createZipContentMap(), DOWNLOAD_FILE_NAME, getUI()));
 	}
 
 	/**
@@ -196,7 +188,6 @@ public class ConfigResultView extends CustomComponent implements ModelChangeList
 			super(new StreamSource() {
 				@Override
 				public InputStream getStream() {
-
 					return new ByteArrayInputStream(getZipByteArray(zipContentMap));
 				}
 			}, filename);
@@ -244,9 +235,9 @@ public class ConfigResultView extends CustomComponent implements ModelChangeList
 				arrayOutputStream.close();
 				return arrayOutputStream.toByteArray();
 			} catch (IOException e) {
-				; // TODO error Handling
+				UIHelper.showNotification("Download Error", e.getMessage(), Notification.Type.ERROR_MESSAGE);
+				return new byte[0];
 			}
-			return new byte[0];
 		}
 	}
 
@@ -267,15 +258,17 @@ public class ConfigResultView extends CustomComponent implements ModelChangeList
 			setLocked(false);
 			setSplitPosition(50, Unit.PERCENTAGE);
 			configTextArea.setSizeFull();
-			descriptionLabel = new Label(UIHelper.loadContentFromFile(getClass(), key.getDescriptionFilename()),
+			configTextArea.setHeight(800, Unit.PIXELS);
+			descriptionLabel = new Label(
+					UIHelper.loadContentFromFile(getClass(), key.getDescriptionFilename()),
 					ContentMode.HTML);
 			addComponent(configTextArea);
 			addComponent(descriptionLabel);
-			setCaption(key.name());
+			setCaption(key.getTitle());
 		}
 
 		public String getDescriptionText() {
-			return (String) descriptionLabel.getValue();
+			return descriptionLabel.getValue();
 		}
 
 		/**
@@ -288,7 +281,7 @@ public class ConfigResultView extends CustomComponent implements ModelChangeList
 		}
 
 		public String getConfigContent() {
-			return configTextArea.getValue() == null ? "" : (String) configTextArea.getValue();
+			return configTextArea.getValue() == null ? "" : configTextArea.getValue();
 		}
 	}
 }

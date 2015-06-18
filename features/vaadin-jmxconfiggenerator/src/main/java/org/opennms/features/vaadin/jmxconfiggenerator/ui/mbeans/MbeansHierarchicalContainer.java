@@ -32,7 +32,6 @@ import com.google.common.base.Strings;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.HierarchicalContainer;
 import com.vaadin.server.Resource;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.MetaMBeanItem;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.StringRenderer;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.UiModel;
 import org.opennms.xmlns.xsd.config.jmx_datacollection.CompAttrib;
@@ -73,12 +72,11 @@ public class MbeansHierarchicalContainer extends HierarchicalContainer {
 
 	public MbeansHierarchicalContainer(MBeansController controller) {
 		this.controller = controller;
-		addContainerProperty(MetaMBeanItem.ICON, Resource.class, null);
-		addContainerProperty(MetaMBeanItem.NAME, String.class, "");
-		addContainerProperty(MetaMBeanItem.TOOLTIP, String.class, "");
-		addContainerProperty(MetaMBeanItem.SELECTED, Boolean.class, true);
-		addContainerProperty(MetaMBeanItem.OBJECTNAME, String.class, "");
-		addContainerProperty(MetaMBeanItem.CAPTION, String.class, "");
+		addContainerProperty(MBeansTree.MetaMBeansTreeItem.VALID, Boolean.class, Boolean.TRUE);
+		addContainerProperty(MBeansTree.MetaMBeansTreeItem.ICON, Resource.class, null);
+		addContainerProperty(MBeansTree.MetaMBeansTreeItem.TOOLTIP, String.class, "");
+		addContainerProperty(MBeansTree.MetaMBeansTreeItem.SELECTED, Boolean.class, true);
+		addContainerProperty(MBeansTree.MetaMBeansTreeItem.CAPTION, String.class, "");
 	}
 
 	public void updateDataSource(UiModel model) {

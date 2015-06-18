@@ -28,13 +28,11 @@
 
 package org.opennms.features.vaadin.jmxconfiggenerator.ui;
 
-import org.opennms.features.vaadin.jmxconfiggenerator.data.ModelChangeListener;
-
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
 
-public class ButtonPanel extends HorizontalLayout implements ModelChangeListener<UiState> {
+public class ButtonPanel extends HorizontalLayout {
 	private final Button next;
 	private final Button previous;
 
@@ -54,11 +52,5 @@ public class ButtonPanel extends HorizontalLayout implements ModelChangeListener
 	
 	public Button getPrevious() {
 		return previous;
-	}
-	
-	@Override
-	public void modelChanged(UiState newModel) {
-		previous.setVisible(newModel.hasPrevious());
-		next.setVisible(newModel.hasNext());
 	}
 }

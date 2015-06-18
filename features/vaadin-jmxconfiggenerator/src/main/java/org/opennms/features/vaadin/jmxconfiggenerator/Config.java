@@ -35,8 +35,10 @@ package org.opennms.features.vaadin.jmxconfiggenerator;
  */
 public interface Config {
 
-    String STYLE_NAME = "opennms";
-    String IMG_FOLDER = "img";
     int ATTRIBUTES_ALIAS_MAX_LENGTH = 19;
-    int NAME_EDIT_FORM_HEIGHT = 170;
+    int NAME_EDIT_FORM_HEIGHT = 150;
+    int NOTIFICATION_DELAY = 3000;
+
+    // Collectd Configuration
+    String DEFAULT_COLLECTD_PACAGE_NAME = "default";
 }

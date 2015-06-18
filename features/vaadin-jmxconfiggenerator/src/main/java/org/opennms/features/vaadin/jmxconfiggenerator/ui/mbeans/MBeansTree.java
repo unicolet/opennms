@@ -34,33 +34,46 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.shared.ui.MultiSelectMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Tree;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.MetaMBeanItem;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.ModelChangeListener;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.UiModel;
 
 /**
  *
  * @author Markus von Rüden
  */
-class MBeansTree extends Tree implements ModelChangeListener<UiModel>, ViewStateChangedListener, Action.Handler {
+class MBeansTree extends Tree implements Action.Handler {
+
+	public interface MetaMBeansTreeItem {
+		String TOOLTIP = "caption";
+		String ICON = "icon";
+		String CAPTION = "label";
+		String SELECTED = "selected";
+		String VALID = "valid";
+	}
 
 	private final MBeansController controller;
 	private final MbeansHierarchicalContainer container;
 	private final Action SELECT = new Action("select");
 	private final Action DESELECT = new Action("deselect");
-	private final Action[] ACTIONS = new Action[]{SELECT, DESELECT};
+	private final Action[] ACTIONS = new Action[]{ SELECT, DESELECT };
 
 	protected MBeansTree(final MBeansController controller) {
 		this.container = controller.getMBeansHierarchicalContainer();
 		this.controller = controller;
 		setSizeFull();
 		setContainerDataSource(container);
-		setItemCaptionPropertyId(MetaMBeanItem.CAPTION);
-		setItemIconPropertyId(MetaMBeanItem.ICON);
+		setItemCaptionPropertyId(MetaMBeansTreeItem.CAPTION);
+		setItemIconPropertyId(MetaMBeansTreeItem.ICON);
 		setItemDescriptionGenerator(new ItemDescriptionGenerator() {
 			@Override
 			public String generateDescription(Component source, Object itemId, Object propertyId) {
-				return getItem(itemId).getItemProperty(MetaMBeanItem.TOOLTIP).getValue().toString();
+				return getItem(itemId).getItemProperty(MetaMBeansTreeItem.TOOLTIP).getValue().toString();
+			}
+		});
+		setItemStyleGenerator(new ItemStyleGenerator() {
+			@Override
+			public String getStyle(Tree source, Object itemId) {
+				if ((Boolean) source.getItem(itemId).getItemProperty(MBeansTree.MetaMBeansTreeItem.VALID).getValue())
+					return "";
+				return "invalid";
 			}
 		});
 		setSelectable(true);
@@ -70,7 +83,7 @@ class MBeansTree extends Tree implements ModelChangeListener<UiModel>, ViewState
 		addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
-				controller.updateView(event);
+				controller.selectItemInTree(event.getItemId());
 			}
 		});
 		setImmediate(true);
@@ -82,38 +95,13 @@ class MBeansTree extends Tree implements ModelChangeListener<UiModel>, ViewState
 	 * If there are any items the first itemId is returned.
 	 * @return The first itemId in the container if there is any, otherwise false.
 	 */
-	private Object expandTree() {
+	public Object expandAllItems() {
 		Object firstItemId = null;
 		for (Object itemId : getItemIds()) {
 			if (firstItemId == null) firstItemId = itemId;
 			expandItem(itemId);
 		}
 		return firstItemId;
-	}
-
-	@Override
-	public void modelChanged(UiModel internalModel) {
-		container.updateDataSource(internalModel);
-		Object selectItemId = expandTree();
-		
-		// select anything in the tree
-		if (selectItemId != null) {
-			select(selectItemId); // first item
-		} else {
-			select(getNullSelectionItemId()); // no selection at all (there are no elements in the tree)
-		}
-	}
-
-	@Override
-	public void viewStateChanged(ViewStateChangedEvent event) {
-		switch (event.getNewState()) {
-			case Edit:
-				setEnabled(false);
-				break;
-			default:
-				setEnabled(true);
-				break;
-		}
 	}
 
 	@Override

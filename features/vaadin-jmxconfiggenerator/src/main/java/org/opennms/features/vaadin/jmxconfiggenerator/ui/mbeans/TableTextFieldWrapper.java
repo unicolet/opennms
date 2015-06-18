@@ -28,14 +28,15 @@
 
 package org.opennms.features.vaadin.jmxconfiggenerator.ui.mbeans;
 
-import java.util.Collection;
-
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.InvalidValueException;
+import com.vaadin.server.ErrorMessage;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TextField;
+
+import java.util.Collection;
 
 /**
  * This class wraps a {@link TextField} so it is laid out correctly inside a
@@ -116,7 +117,12 @@ public class TableTextFieldWrapper extends HorizontalLayout implements Field<Str
 
 	@Override
 	public void validate() throws InvalidValueException {
-		this.textField.validate();
+//		try {
+			this.textField.validate();
+//			setComponentError(null);
+//		} catch (InvalidValueException ex) {
+//			setComponentError(new UserError(ex.getMessage()));
+//		}
 	}
 
 	@Override
@@ -212,5 +218,10 @@ public class TableTextFieldWrapper extends HorizontalLayout implements Field<Str
 	@Override
 	public void focus() {
 		super.focus();
+	}
+
+	@Override
+	public void setComponentError(ErrorMessage componentError) {
+		textField.setComponentError(componentError);
 	}
 }

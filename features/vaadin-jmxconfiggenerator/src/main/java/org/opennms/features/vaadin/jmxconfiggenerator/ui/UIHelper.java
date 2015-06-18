@@ -28,13 +28,15 @@
 
 package org.opennms.features.vaadin.jmxconfiggenerator.ui;
 
+import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
-import com.vaadin.ui.TabSheet;
-import org.opennms.features.vaadin.jmxconfiggenerator.ui.mbeans.ViewStateChangedEvent;
+import com.vaadin.ui.UI;
+import org.opennms.features.vaadin.jmxconfiggenerator.Config;
+import org.opennms.features.vaadin.jmxconfiggenerator.JmxConfigGeneratorUI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,54 +69,10 @@ public abstract class UIHelper {
 		return button;
 	}
 
-	public static Button createButton(
-			final String buttonCaption,
-			final String buttonDescription,
-			final String iconName,
-			final ClickListener clickListener) {
-		return createButton(buttonCaption, buttonDescription, IconProvider.getIcon(iconName), clickListener);
+	public static Button createButton(final String buttonCaption, String buttonDescription, final Resource icon) {
+		return createButton(buttonCaption, buttonDescription, icon, null);
 	}
 
-	public static Button createButton(final String buttonCaption, String buttonDescription, final String iconName) {
-		return createButton(buttonCaption, buttonDescription, iconName, null);
-	}
-
-	/**
-	 * This method enables or disables all tabs in a tabSheet. Therefore the
-	 * <code>ViewStatechangedEvent</code> is used. If the new view state is Edit
-	 * the method returns the last selected tab position. If the new view state
-	 * is not Edit the " <code>oldSelectedTabPosition</code>" is selected in the
-	 * given <code>tabSheet</code>.
-	 * 
-	 * @param tabSheet
-	 *            the tabsheet to enable or disable all tabs in
-	 * @param event
-	 * @param oldSelectedTabPosition
-	 *            which tab was selected before view state was Edit
-	 * @return
-	 */
-	public static int enableTabs(final TabSheet tabSheet, final ViewStateChangedEvent event,
-			final int oldSelectedTabPosition) {
-		boolean editMode = event.getNewState().isEdit();
-		boolean enabled = !editMode;
-		int newSelectedTabPosition = 0;
-		// remember which tab was selected (before editing)
-		if (editMode) newSelectedTabPosition = getSelectedTabPosition(tabSheet);
-		// disable or enable
-		for (int i = 0; i < tabSheet.getComponentCount(); i++)
-			tabSheet.getTab(i).setEnabled(enabled);
-		// select tab depending on selection (after editing)
-		if (!editMode) tabSheet.setSelectedTab(tabSheet.getTab(oldSelectedTabPosition));
-		// return currently selected tab
-		return editMode ? newSelectedTabPosition : getSelectedTabPosition(tabSheet);
-	}
-
-	private static int getSelectedTabPosition(final TabSheet tabSheet) {
-		if (tabSheet == null) return 0;
-		if (tabSheet.getSelectedTab() == null) return 0;
-		if (tabSheet.getTab(tabSheet.getSelectedTab()) == null) return 0;
-		return tabSheet.getTabPosition(tabSheet.getTab(tabSheet.getSelectedTab()));
-	}
 
 	/**
 	 * Closes the given Closeable silently. That means if an error during
@@ -182,7 +140,20 @@ public abstract class UIHelper {
 	 *            the error message.
 	 */
 	public static void showValidationError(String errorMessage) {
-		Notification.show("Validation Error", errorMessage != null ? errorMessage : "An unknown error occured.", Type.WARNING_MESSAGE);
+		showNotification("Validation Error", errorMessage != null ? errorMessage : "An unknown error occurred.", Type.ERROR_MESSAGE);
+	}
 
+	public static JmxConfigGeneratorUI getCurrent() {
+		return (JmxConfigGeneratorUI) UI.getCurrent();
+	}
+
+	public static void showNotification(String message) {
+		showNotification(message, null, Type.ERROR_MESSAGE);
+	}
+
+	public static void showNotification(String title, String message, Type type) {
+		Notification notification = new Notification(title, message, type, true);
+		notification.setDelayMsec(Config.NOTIFICATION_DELAY);
+		notification.show(Page.getCurrent());
 	}
 }

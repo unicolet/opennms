@@ -44,9 +44,8 @@ public class ServiceConfig {
     private String outFile = "JmxConfig.xml";
     private String user = null;
     private String password = null;
-    // FIXME this is never used 
     private boolean ssl = false;
-    private boolean skipDefaultVM = false;
+    private boolean skipDefaultVM = true;
     private boolean runWritableMBeans = false;
     private boolean authenticate = false;
 

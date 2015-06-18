@@ -28,33 +28,31 @@
 
 package org.opennms.features.vaadin.jmxconfiggenerator.ui;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.FieldGroup;
+import com.vaadin.data.util.BeanItem;
+import com.vaadin.data.util.converter.Converter.ConversionException;
+import com.vaadin.data.validator.RegexpValidator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.AbstractComponent;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Field;
 import com.vaadin.ui.FormLayout;
+import com.vaadin.ui.PasswordField;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import org.kohsuke.args4j.Option;
 import org.opennms.features.jmxconfiggenerator.Starter;
 import org.opennms.features.vaadin.jmxconfiggenerator.JmxConfigGeneratorUI;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.MetaConfigModel;
-import org.opennms.features.vaadin.jmxconfiggenerator.data.ModelChangeListener;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.ServiceConfig;
 import org.opennms.features.vaadin.jmxconfiggenerator.data.UiModel;
 
-import com.vaadin.data.Property;
-import com.vaadin.data.util.BeanItem;
-import com.vaadin.data.util.converter.Converter.ConversionException;
-import com.vaadin.data.validator.RegexpValidator;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.PasswordField;
-import com.vaadin.ui.TextField;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This form handles editing of a {@link ServiceConfig} model.
@@ -99,7 +97,12 @@ public class ConfigView extends FormLayout implements View, ClickListener {
 						"There are still errors on this page. You cannot continue. Please check if all required fields have been filled.");
 				return;
 			}
-			app.updateView(UiState.MbeansDetection);
+			try {
+				configFieldGroup.commit();
+				app.updateView(UiState.MbeansDetection);
+			} catch (FieldGroup.CommitException e) {
+				UIHelper.showNotification("An unexpected error occured.");
+			}
 		}
 		if (buttonPanel.getPrevious().equals(event.getButton())) {
 			app.updateView(UiState.IntroductionView);
@@ -174,7 +177,7 @@ public class ConfigView extends FormLayout implements View, ClickListener {
 
 		configFieldGroup.bind(serviceNameField, MetaConfigModel.SERVICE_NAME);
 		configFieldGroup.bind(hostNameField, MetaConfigModel.HOST);
-		configFieldGroup.bind(hostNameField, MetaConfigModel.PORT);
+		configFieldGroup.bind(portField, MetaConfigModel.PORT);
 		configFieldGroup.bind(passwordField, MetaConfigModel.PASSWORD);
 		configFieldGroup.bind(authenticateField, MetaConfigModel.AUTHENTICATE);
 		configFieldGroup.bind(userField, MetaConfigModel.USER);
