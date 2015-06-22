@@ -74,7 +74,6 @@ import org.opennms.netmgt.config.javamail.JavamailConfiguration;
 import org.opennms.netmgt.config.jdbc.JdbcDataCollectionConfig;
 import org.opennms.netmgt.config.kscReports.ReportsList;
 import org.opennms.netmgt.config.mailtransporttest.MailTransportTest;
-import org.opennms.netmgt.config.map.adapter.MapsAdapterConfiguration;
 import org.opennms.netmgt.config.microblog.MicroblogConfiguration;
 import org.opennms.netmgt.config.monitoringLocations.MonitoringLocationsConfiguration;
 import org.opennms.netmgt.config.notifd.NotifdConfiguration;
@@ -264,8 +263,6 @@ public class WillItUnmarshalTest {
         addFile(Source.CONFIG, "reportd-configuration.xml", ReportdConfiguration.class, Impl.CASTOR);
         addFile(Source.CONFIG, "rws-configuration.xml", RwsConfiguration.class, Impl.CASTOR);
         addFile(Source.EXAMPLE, "rws-configuration.xml", RwsConfiguration.class, Impl.CASTOR);
-        addFile(Source.CONFIG, "mapsadapter-configuration.xml", MapsAdapterConfiguration.class, Impl.CASTOR);
-        addFile(Source.EXAMPLE, "mapsadapter-configuration.xml", MapsAdapterConfiguration.class, Impl.CASTOR);
         addFile(Source.CONFIG, "rancid-configuration.xml", RancidConfiguration.class, Impl.CASTOR);
         addFile(Source.EXAMPLE, "rancid-configuration.xml", RancidConfiguration.class, Impl.CASTOR);
         addFile(Source.CONFIG, "microblog-configuration.xml", MicroblogConfiguration.class, Impl.CASTOR);
