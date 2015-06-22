@@ -365,11 +365,6 @@ public abstract class ConfigFileConstants {
      * The OpenNMS DataSourceConfiguration file
      */
     public static final int OPENNMS_DATASOURCE_CONFIG_FILE_NAME;
-    
-    /**
-     * The map properties config file
-     */
-    public static final int MAP_PROPERTIES_FILE_NAME;
 
     //
     // End XSL files used by reports
@@ -548,8 +543,6 @@ public abstract class ConfigFileConstants {
 
         SYSLOGD_CONFIG_FILE_NAME = 58;
         
-        MAP_PROPERTIES_FILE_NAME = 60;
-        
         SURVEILLANCE_VIEWS_FILE_NAME = 61;
         
         SITE_STATUS_VIEWS_FILE_NAME = 62;
@@ -665,7 +658,6 @@ public abstract class ConfigFileConstants {
         FILE_ID_TO_NAME[TRANSLATOR_CONFIG_FILE_NAME] = "translator-configuration.xml";
         FILE_ID_TO_NAME[SYSLOGD_CONFIG_FILE_NAME] = "syslogd-configuration.xml";
         FILE_ID_TO_NAME[ENLINKD_CONFIG_FILE_NAME] = "enlinkd-configuration.xml";
-        FILE_ID_TO_NAME[MAP_PROPERTIES_FILE_NAME] = "map.properties";
         FILE_ID_TO_NAME[SURVEILLANCE_VIEWS_FILE_NAME] = "surveillance-views.xml";
         FILE_ID_TO_NAME[SITE_STATUS_VIEWS_FILE_NAME] = "site-status-views.xml";
         FILE_ID_TO_NAME[HTTP_COLLECTION_CONFIG_FILE_NAME] = "http-datacollection-config.xml";

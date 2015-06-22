@@ -34,7 +34,6 @@
         <entry key="jmx-datacollection-config.xml" value="jmxDataCollectionConfigFactory"/>
         <entry key="ksc-performance-reports.xml" value="kscReportFactory"/>
         <entry key="magic-users.properties" value="userDao"/>
-        <entry key="map.properties" value="mapPropertiesFactory"/>
         <entry key="microblog-configuration.xml" value="microblogConfigurationDao"/>
         <entry key="model-importer.properties" value="modelImporterProperties"/>
         <!--  <entry key="modemConfig.properties" value="unknown"/> -->

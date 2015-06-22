@@ -240,11 +240,6 @@ public class ConfigTesterTest {
     }
 
     @Test
-    public void testMap() {
-        testConfigFile("map.properties");
-    }
-
-    @Test
     /**
      * FIXME: Database access.
      */
