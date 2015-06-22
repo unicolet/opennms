@@ -193,8 +193,6 @@ Summary:	All Plugins
 Group:		Applications/System
 Requires(pre):	%{name}-plugin-provisioning-dns
 Requires:	%{name}-plugin-provisioning-dns
-Requires(pre):	%{name}-plugin-provisioning-map
-Requires:	%{name}-plugin-provisioning-map
 Requires(pre):	%{name}-plugin-provisioning-rancid
 Requires:	%{name}-plugin-provisioning-rancid
 Requires(pre):	%{name}-plugin-provisioning-snmp-asset
@@ -238,20 +236,6 @@ Requires:	%{name}-core = %{version}-%{release}
 %description plugin-provisioning-dns
 The DNS provisioning adapter allows for updating dynamic DNS records based on
 provisioned nodes.
-
-%{extrainfo}
-%{extrainfo2}
-
-
-%package plugin-provisioning-map
-Summary:	Map Provisioning Adapter
-Group:		Applications/System
-Requires(pre):	%{name}-core = %{version}-%{release}
-Requires:	%{name}-core = %{version}-%{release}
-
-%description plugin-provisioning-map
-The map provisioning adapter will automatically create maps when nodes are provisioned
-in %{_descr}.
 
 %{extrainfo}
 %{extrainfo2}
@@ -733,13 +717,6 @@ rm -rf $RPM_BUILD_ROOT
 %files plugin-provisioning-dns
 %defattr(664 root root 775)
 %{instprefix}/lib/opennms-dns-provisioning-adapter*.jar
-
-%files plugin-provisioning-map
-%defattr(664 root root 775)
-%{instprefix}/lib/opennms-map-provisioning-adapter*.jar
-%{instprefix}/etc/examples/mapsadapter-configuration.xml
-%config(noreplace) %{instprefix}/etc/mapsadapter-configuration.xml
-%{sharedir}/etc-pristine/mapsadapter-configuration.xml
 
 %files plugin-provisioning-rancid
 %defattr(664 root root 775)
