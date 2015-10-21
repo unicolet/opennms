@@ -56,9 +56,8 @@ _Kibana 4_ is more powerful, but harder to get started with.
 [[ga-events-forwarding-elastic-basic-config]]
 ==== A basic Elasticsearch configuration
 
-This section describes the steps to get a minimal working configuration with _OpenNMS_ in a default configuration and _Elasticsearch_.
-The setup installs _Elasticsearch_ on the same host as _OpenNMS_.
-Install _Elasticsearch_ and edit the `elasticsearch.yml` as follows:
+This section describes to get a minimal working configuration with _OpenNMS_ and _Elasticsearch_.
+Install _Elasticsearch_ on the same host as _OpenNMS_ and edit the `elasticsearch.yml` as follows:
 
 .Example configuration for _Elasticsearch_
 [source]
