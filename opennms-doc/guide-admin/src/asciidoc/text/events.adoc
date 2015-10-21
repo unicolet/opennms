@@ -93,16 +93,16 @@ The following table describes all settings and possible values.
 
 The first two (`elasticsearchCluster` and `elasticsearchIp`) settings are the most likely to require changing. If unsure do not change the remaining three.
 
-Once you are sure everything is correctly configured you can activate the Elasticsearch forwarder.
+Once you are sure everything is correctly configured you can activate the Elasticsearch forwarder:
 
-Log into the OSGi console (on Linux use ssh admin@localhost -p 8101 , on Windows use putty and specify port 8101 instaed of the default 22)
+log into the OSGi console (on Linux use ssh admin@localhost -p 8101 , on Windows use putty and specify port 8101 instaed of the default 22)
 to install the feature with the following command:
 
 `features:install opennms-elasticsearch-event-forwarder`
 
 You can check the routes status with the camel:* commands and/or inspect the log with log:tail for any obvious errors. The feature has a trace level logging that can be used to trace operations.
 
-NOTE: http://karaf.apache.org/manual/latest/users-guide/console.html[documentation] on using the OSGi console embedded in OpenNMS.
+NOTE: http://karaf.apache.org/manual/latest/users-guide/console.html[documentation] on using the OSGi console embedded in OpenNMS and the relative http://camel.apache.org/karaf.html[camel commands].
 
 If all goes well events and alarms will be pushed in realtime into Elasticsearch.
 You should now be able to view the events and graph them with https://www.elastic.co/products/kibana[Kibana].
